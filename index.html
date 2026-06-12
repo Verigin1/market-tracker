@@ -2,12 +2,11 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
 <title>指数与资产价格跟踪 | Verigin Tech</title>
 <style>
   :root {
     --bg-primary: #0a0e1a;
-    --bg-secondary: #111827;
     --bg-card: #1a2035;
     --border: #2a3450;
     --text-primary: #e8ecf1;
@@ -20,11 +19,13 @@
     --blue: #3b82f6;
   }
   * { margin:0; padding:0; box-sizing:border-box; }
+  html { overflow-x: hidden; }
   body {
     font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
     background: var(--bg-primary);
     color: var(--text-primary);
     min-height: 100vh;
+    overflow-x: hidden;
   }
   .container { max-width: 1200px; margin: 0 auto; padding: 24px 20px; }
   .header {
@@ -40,44 +41,49 @@
   .update-badge {
     font-size: 11px; color: var(--text-secondary);
     background: var(--bg-card); border: 1px solid var(--border);
-    padding: 6px 12px; border-radius: 20px;
+    padding: 6px 12px; border-radius: 20px; white-space: nowrap;
   }
   .section-title {
     font-size: 13px; font-weight: 600; color: var(--text-secondary);
     text-transform: uppercase; letter-spacing: 1.5px;
     margin: 28px 0 14px; padding-left: 2px;
   }
+  .scroll-hint {
+    display: none; font-size: 10px; color: var(--text-secondary);
+    text-align: center; padding: 6px 0 4px; opacity: 0.5;
+  }
   .table-wrap {
     background: var(--bg-card); border: 1px solid var(--border);
-    border-radius: 12px; overflow: hidden;
+    border-radius: 12px; overflow-x: auto; -webkit-overflow-scrolling: touch;
   }
-  table { width: 100%; border-collapse: collapse; }
+  table { width: 100%; border-collapse: collapse; min-width: 700px; }
   thead th {
     font-size: 11px; font-weight: 600; color: var(--text-secondary);
     text-transform: uppercase; letter-spacing: 0.8px;
-    padding: 14px 12px; text-align: right;
+    padding: 14px 10px; text-align: right; white-space: nowrap;
     background: rgba(0,0,0,0.2); border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; z-index: 1;
   }
-  thead th:first-child { text-align: left; padding-left: 20px; min-width: 160px; }
+  thead th:first-child { text-align: left; padding-left: 16px; min-width: 140px; }
   tbody td {
-    padding: 14px 12px; text-align: right; font-size: 14px;
+    padding: 12px 10px; text-align: right; font-size: 13px;
     border-bottom: 1px solid rgba(42,52,80,0.5);
-    font-variant-numeric: tabular-nums;
+    font-variant-numeric: tabular-nums; white-space: nowrap;
   }
   tbody td:first-child {
-    text-align: left; padding-left: 20px; font-weight: 600;
-    font-size: 13px;
+    text-align: left; padding-left: 16px; font-weight: 600; font-size: 13px;
+    position: sticky; left: 0; background: var(--bg-card); z-index: 2;
   }
   tbody tr:last-child td { border-bottom: none; }
   tbody tr:hover { background: rgba(255,255,255,0.02); }
-  .price { font-weight: 700; font-size: 15px; }
-  .change { font-weight: 600; font-size: 13px; }
-  .change.up { color: var(--red); background: var(--red-bg); padding: 3px 8px; border-radius: 4px; }
-  .change.down { color: var(--green); background: var(--green-bg); padding: 3px 8px; border-radius: 4px; }
+  .price { font-weight: 700; font-size: 14px; }
+  .change { font-weight: 600; font-size: 12px; display: inline-block; }
+  .change.up { color: var(--red); background: var(--red-bg); padding: 3px 7px; border-radius: 4px; }
+  .change.down { color: var(--green); background: var(--green-bg); padding: 3px 7px; border-radius: 4px; }
   .change.flat { color: var(--text-secondary); }
   .asset-dot {
     display: inline-block; width: 8px; height: 8px; border-radius: 50%;
-    margin-right: 8px; vertical-align: middle;
+    margin-right: 6px; vertical-align: middle;
   }
   .dot-us { background: var(--blue); }
   .dot-cn { background: var(--red); }
@@ -119,13 +125,29 @@
     font-size: 11px; color: var(--text-secondary); opacity: 0.5;
   }
   .footer a { color: var(--gold); text-decoration: none; }
+
+  /* Mobile */
   @media (max-width: 768px) {
-    .container { padding: 16px 12px; }
-    thead th, tbody td { padding: 10px 6px; font-size: 11px; }
-    tbody td:first-child { padding-left: 12px; min-width: 110px; font-size: 11px; }
-    .price { font-size: 13px; }
-    .change { font-size: 11px; padding: 2px 5px; }
+    .container { padding: 12px 8px; }
+    .header { flex-direction: column; align-items: flex-start; gap: 8px; padding: 16px 0 20px; }
     .header h1 { font-size: 18px; }
+    .update-badge { font-size: 10px; padding: 4px 10px; align-self: flex-start; }
+    .scroll-hint { display: block; }
+    .table-wrap { border-radius: 8px; }
+    thead th { padding: 10px 8px; font-size: 10px; }
+    thead th:first-child { padding-left: 12px; min-width: 110px; }
+    tbody td { padding: 10px 8px; font-size: 11px; }
+    tbody td:first-child { padding-left: 12px; font-size: 11px; }
+    .price { font-size: 12px; }
+    .change { font-size: 10px; padding: 2px 4px; }
+    .section-title { margin: 20px 0 10px; font-size: 11px; }
+    .yield-header { font-size: 11px; padding: 8px 12px; margin-top: 18px; }
+    .event-card { padding: 14px 14px; }
+    .event-card h3 { font-size: 13px; }
+    .event-card p { font-size: 12px; }
+    .summary-box { padding: 14px 14px; }
+    .summary-box p { font-size: 12px; }
+    .footer { padding: 24px 0 12px; font-size: 10px; }
   }
 </style>
 </head>
@@ -137,10 +159,11 @@
       <h1>指数与资产价格跟踪</h1>
       <p>Index & Asset Price Tracker · Verigin Tech</p>
     </div>
-    <div class="update-badge">更新于 2026-06-12 06:40 (北京时间) · 6月11日收盘</div>
+    <div class="update-badge">6月11日收盘 · 更新于 06-12 06:40</div>
   </div>
 
   <div class="section-title">指数与商品</div>
+  <div class="scroll-hint">← 左右滑动查看完整数据 →</div>
   <div class="table-wrap">
     <table>
       <thead>
@@ -221,6 +244,7 @@
   </div>
 
   <div class="yield-header">美债收益率（变化单位: bp · 红色=上行 绿色=下行）</div>
+  <div class="scroll-hint">← 左右滑动查看完整数据 →</div>
   <div class="table-wrap" style="margin-top:8px;">
     <table>
       <thead>
