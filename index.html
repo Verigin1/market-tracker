@@ -98,7 +98,7 @@
   .dot-bond { background: #8b5cf6; }
   .dot-custom { background: #06b6d4; }
 
-  /* Row action buttons */
+  /* Row actions */
   .row-actions {
     display: flex; align-items: center; justify-content: center; gap: 1px;
     opacity: 0.3; transition: opacity 0.2s;
@@ -130,7 +130,11 @@
   }
   .add-row-bar:hover .plus-icon { border-color: var(--gold); color: var(--gold); }
 
-  /* Add modal */
+  /* Loading indicator in row */
+  .row-loading td { color: var(--text-secondary); font-style: italic; }
+  .row-loading .price::after { content: ''; display: inline-block; width: 40px; height: 12px; background: rgba(255,255,255,0.06); border-radius: 3px; vertical-align: middle; margin-left: 6px; }
+
+  /* Modal */
   .modal-overlay {
     display: none; position: fixed; top:0; left:0; right:0; bottom:0;
     background: rgba(0,0,0,0.6); z-index: 100;
@@ -139,7 +143,7 @@
   .modal-overlay.show { display: flex; }
   .modal-box {
     background: var(--bg-card); border: 1px solid var(--border);
-    border-radius: 14px; padding: 28px 32px; width: 90%; max-width: 420px;
+    border-radius: 14px; padding: 28px 32px; width: 90%; max-width: 460px;
     box-shadow: 0 20px 60px rgba(0,0,0,0.5);
   }
   .modal-box h3 {
@@ -157,7 +161,14 @@
   }
   .modal-box input:focus, .modal-box select:focus { border-color: var(--gold); }
   .modal-box select option { background: var(--bg-card); }
-  .modal-hint { font-size: 10px; color: var(--text-secondary); margin-top: 4px; opacity: 0.7; }
+  .modal-hint { font-size: 10px; color: var(--text-secondary); margin-top: 4px; opacity: 0.7; line-height: 1.5; }
+  .modal-status {
+    margin-top: 10px; padding: 8px 12px; border-radius: 6px; font-size: 12px;
+    display: none;
+  }
+  .modal-status.fetching { display: block; background: rgba(59,130,246,0.1); color: var(--blue); }
+  .modal-status.success { display: block; background: rgba(34,197,94,0.1); color: var(--green); }
+  .modal-status.error { display: block; background: rgba(239,68,68,0.1); color: var(--red); }
   .modal-btns { display: flex; gap: 10px; margin-top: 22px; justify-content: flex-end; }
   .modal-btns button {
     padding: 8px 20px; border-radius: 8px; font-size: 13px; font-weight: 600;
@@ -168,6 +179,18 @@
   .btn-confirm { background: var(--gold); color: #1a1a2e; }
   .btn-confirm:hover { background: #e8b94a; }
   .btn-confirm:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* Preset chips */
+  .preset-section { margin-top: 14px; }
+  .preset-section label { margin-bottom: 8px; }
+  .preset-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .preset-chip {
+    padding: 5px 10px; border-radius: 6px; font-size: 11px;
+    background: var(--bg-primary); border: 1px solid var(--border);
+    color: var(--text-secondary); cursor: pointer; transition: all 0.15s;
+  }
+  .preset-chip:hover { border-color: var(--gold); color: var(--gold); }
+  .preset-chip.selected { border-color: var(--gold); color: var(--gold); background: rgba(212,168,83,0.1); }
 
   .yield-header {
     background: rgba(139,92,246,0.08); border-left: 3px solid #8b5cf6;
@@ -204,7 +227,7 @@
   }
   .footer a { color: var(--gold); text-decoration: none; }
 
-  /* Toast notification */
+  /* Toast */
   .toast {
     position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(80px);
     background: var(--bg-card); border: 1px solid var(--border);
@@ -240,6 +263,8 @@
     .summary-box p { font-size: 12px; }
     .footer { padding: 24px 0 12px; font-size: 10px; }
     .modal-box { padding: 20px 18px; margin: 0 12px; }
+    .preset-chips { gap: 4px; }
+    .preset-chip { font-size: 10px; padding: 4px 8px; }
   }
 </style>
 </head>
@@ -309,7 +334,7 @@
   </div>
 
   <div style="margin-top:10px; padding:8px 12px; background:rgba(167,139,250,0.06); border-radius:6px; font-size:11px; color:#a78bfa; line-height:1.6;">
-    💡 5年/10年列为含分红再投资的全收益口径（Total Return），与1年/3年列（价格回报）存在口径差异。5Y=2021.6→2026.6，10Y=2016.6→2026.6。数据来源：新华财经 / 上海证券报 / 东方财富 / 格隆汇 / Morningstar / CoinMarketCap
+    💡 5年/10年列为含分红再投资的全收益口径（Total Return），与1年/3年列（价格回报）存在口径差异。5Y=2021.6→2026.6，10Y=2016.6→2026.6。数据来源：新华财经 / 上海证券报 / 东方财富 / 格隆汇 / Morningstar / CoinMarketCap / Yahoo Finance
   </div>
 
   <div class="section-title" style="margin-top:36px;">6月16日 市场事件分析</div>
@@ -356,7 +381,7 @@
 
   <div class="footer">
     <p>配色规则：红色=上涨/上行 · 绿色=下跌/下行（中国市场惯例）</p>
-    <p style="margin-top:6px;">数据来源：新华财经 · 上海证券报 · 东方财富 · 格隆汇 · Morningstar · CoinMarketCap · CME FedWatch&nbsp;&nbsp;|&nbsp;&nbsp;Powered by <a href="#">Verigin Tech</a></p>
+    <p style="margin-top:6px;">数据来源：新华财经 · 上海证券报 · 东方财富 · 格隆汇 · Morningstar · CoinMarketCap · CME FedWatch · Yahoo Finance&nbsp;&nbsp;|&nbsp;&nbsp;Powered by <a href="#">Verigin Tech</a></p>
     <p style="margin-top:4px;">免责声明：本页面仅供信息参考，不构成投资建议</p>
   </div>
 
@@ -366,10 +391,30 @@
 <div class="modal-overlay" id="add-modal">
   <div class="modal-box">
     <h3>添加标的</h3>
+
+    <div class="preset-section">
+      <label>快捷选择</label>
+      <div class="preset-chips" id="preset-chips">
+        <span class="preset-chip" data-symbol="^DJI" data-name="道琼斯工业" data-type="index">道琼斯</span>
+        <span class="preset-chip" data-symbol="^SOX" data-name="费城半导体" data-type="index">费城半导体</span>
+        <span class="preset-chip" data-symbol="^RUT" data-name="罗素2000" data-type="index">罗素2000</span>
+        <span class="preset-chip" data-symbol="000300.SS" data-name="沪深300" data-type="index">沪深300</span>
+        <span class="preset-chip" data-symbol="399006.SZ" data-name="创业板指" data-type="index">创业板指</span>
+        <span class="preset-chip" data-symbol="^N225" data-name="日经225" data-type="index">日经225</span>
+        <span class="preset-chip" data-symbol="^FTSE" data-name="富时100" data-type="index">富时100</span>
+        <span class="preset-chip" data-symbol="^GDAXI" data-name="德国DAX" data-type="index">DAX</span>
+        <span class="preset-chip" data-symbol="CL=F" data-name="WTI原油" data-type="commodity">WTI原油</span>
+        <span class="preset-chip" data-symbol="GC=F" data-name="COMEX黄金" data-type="commodity">COMEX黄金</span>
+      </div>
+    </div>
+
     <label>名称</label>
     <input type="text" id="add-name" placeholder="如：日经225、沪深300、AAPL">
-    <label>代码 <span style="font-weight:400;text-transform:none;letter-spacing:0;">(可选)</span></label>
-    <input type="text" id="add-code" placeholder="如：NI225、000300.SH、AAPL">
+    <label>Yahoo代码 <span style="font-weight:400;text-transform:none;letter-spacing:0;">(必填，用于自动获取数据)</span></label>
+    <input type="text" id="add-symbol" placeholder="如：^N225、000300.SS、AAPL、CL=F">
+    <div class="modal-hint">
+      美股指数: ^GSPC ^IXIC ^DJI ^SOX ^RUT &nbsp;|&nbsp; A股: 000300.SS 399006.SZ &nbsp;|&nbsp; 港股: ^HSI &nbsp;|&nbsp; 商品: GC=F(金) CL=F(油) SI=F(银) &nbsp;|&nbsp; 个股: AAPL NVDA 0700.HK
+    </div>
     <label>类别</label>
     <select id="add-type">
       <option value="index">指数</option>
@@ -378,10 +423,10 @@
       <option value="crypto">加密货币</option>
       <option value="bond">债券/收益率</option>
     </select>
-    <div class="modal-hint">添加后，数据将在下次更新时自动填充。当前显示为占位行。</div>
+    <div class="modal-status" id="add-status"></div>
     <div class="modal-btns">
       <button class="btn-cancel" onclick="closeAddModal()">取消</button>
-      <button class="btn-confirm" id="add-confirm-btn" onclick="confirmAdd()">添加</button>
+      <button class="btn-confirm" id="add-confirm-btn" onclick="confirmAdd()">添加并获取数据</button>
     </div>
   </div>
 </div>
@@ -424,6 +469,116 @@ function setBondData(data) {
   localStorage.setItem('mt_bond', JSON.stringify(data));
 }
 
+// ========== Yahoo Finance Fetch ==========
+async function fetchYahooData(symbol) {
+  // Try multiple CORS proxy approaches
+  const proxyUrls = [
+    `https://corsproxy.io/?${encodeURIComponent(`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?range=10y&interval=1d&includePrePost=false`)}`,
+    `https://api.allorigins.win/raw?url=${encodeURIComponent(`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?range=10y&interval=1d&includePrePost=false`)}`,
+  ];
+
+  for (const url of proxyUrls) {
+    try {
+      const resp = await fetch(url, { signal: AbortSignal.timeout(12000) });
+      if (!resp.ok) continue;
+      const data = await resp.json();
+      if (data.chart && data.chart.result && data.chart.result.length > 0) {
+        return parseYahooResult(data.chart.result[0]);
+      }
+    } catch(e) {
+      continue;
+    }
+  }
+  return null;
+}
+
+function parseYahooResult(result) {
+  const meta = result.meta;
+  const quotes = result.indicators.quote[0];
+  const timestamps = result.timestamp;
+  if (!quotes || !timestamps || timestamps.length < 2) return null;
+
+  const currentPrice = meta.regularMarketPrice;
+  const prevClose = meta.chartPreviousClose || meta.previousClose;
+
+  // Helper: find price at N trading days ago
+  function priceAtDaysAgo(days) {
+    const idx = timestamps.length - 1 - days;
+    if (idx < 0) return null;
+    // Find last non-null close in the vicinity
+    for (let i = idx; i >= 0; i--) {
+      const c = quotes.close[i];
+      if (c != null && c > 0) return c;
+    }
+    return null;
+  }
+
+  // Helper: find closest price to a target date
+  function priceAtDate(targetDate) {
+    const targetTs = targetDate.getTime() / 1000;
+    let bestIdx = -1;
+    let bestDist = Infinity;
+    for (let i = 0; i < timestamps.length; i++) {
+      const dist = Math.abs(timestamps[i] - targetTs);
+      if (dist < bestDist) { bestDist = dist; bestIdx = i; }
+    }
+    if (bestIdx < 0) return null;
+    for (let i = bestIdx; i >= 0; i--) {
+      if (quotes.close[i] != null && quotes.close[i] > 0) return quotes.close[i];
+    }
+    return null;
+  }
+
+  const now = new Date();
+  const ytdStart = new Date(now.getFullYear(), 0, 1);
+  const oneYearAgo = new Date(now); oneYearAgo.setFullYear(now.getFullYear() - 1);
+  const threeYearsAgo = new Date(now); threeYearsAgo.setFullYear(now.getFullYear() - 3);
+  const fiveYearsAgo = new Date(now); fiveYearsAgo.setFullYear(now.getFullYear() - 5);
+  const tenYearsAgo = new Date(now); tenYearsAgo.setFullYear(now.getFullYear() - 10);
+
+  const p5d = priceAtDaysAgo(5);
+  const p20d = priceAtDaysAgo(20);
+  const pYtd = priceAtDate(ytdStart);
+  const p1y = priceAtDate(oneYearAgo);
+  const p3y = priceAtDate(threeYearsAgo);
+  const p5y = priceAtDate(fiveYearsAgo);
+  const p10y = priceAtDate(tenYearsAgo);
+
+  function pctChange(from, to) {
+    if (from == null || to == null || from === 0) return null;
+    return ((to - from) / from) * 100;
+  }
+
+  function fmtPct(val) {
+    if (val == null) return null;
+    const sign = val >= 0 ? '+' : '';
+    if (Math.abs(val) >= 100) return [sign + val.toFixed(0) + '%', val >= 0 ? 'up' : 'down'];
+    if (Math.abs(val) >= 10) return [sign + val.toFixed(1) + '%', val >= 0 ? 'up' : 'down'];
+    return [sign + val.toFixed(2) + '%', val >= 0 ? 'up' : 'down'];
+  }
+
+  function fmtPrice(val, symbol) {
+    if (val == null) return '--';
+    if (Math.abs(val) >= 10000) return val.toLocaleString('en-US', {maximumFractionDigits:2});
+    if (Math.abs(val) >= 100) return val.toLocaleString('en-US', {maximumFractionDigits:2});
+    return val.toFixed(2);
+  }
+
+  const dailyChg = prevClose ? pctChange(prevClose, currentPrice) : null;
+
+  return {
+    price: fmtPrice(currentPrice, symbol),
+    d: fmtPct(dailyChg) || ['--','flat'],
+    d5: fmtPct(pctChange(p5d, currentPrice)) || ['--','flat'],
+    d20: fmtPct(pctChange(p20d, currentPrice)) || ['--','flat'],
+    ytd: fmtPct(pctChange(pYtd, currentPrice)) || ['--','flat'],
+    y1: fmtPct(pctChange(p1y, currentPrice)) || ['--','flat'],
+    y3: fmtPct(pctChange(p3y, currentPrice)) || ['--','flat'],
+    y5: fmtPct(pctChange(p5y, currentPrice)) || ['--','flat'],
+    y10: fmtPct(pctChange(p10y, currentPrice)) || ['--','flat'],
+  };
+}
+
 // ========== Render ==========
 function changeCell(val, dir) {
   const cls = dir === 'up' ? 'up' : dir === 'down' ? 'down' : 'flat';
@@ -439,9 +594,10 @@ function actionBtns(idx, total, isBond) {
 }
 
 function renderRow(row, idx, total, isBond) {
-  return `<tr>
+  const isPlaceholder = row.price === '--';
+  return `<tr${isPlaceholder?' class="row-loading"':''}>
     <td>${actionBtns(idx, total, isBond)}</td>
-    <td><span class="asset-dot ${row.dot}"></span>${row.name}</td>
+    <td><span class="asset-dot ${row.dot}"></span>${row.name}${row.symbol?' <span style="font-size:10px;color:var(--text-secondary);font-weight:400;">'+row.symbol+'</span>':''}</td>
     <td class="price">${row.price}</td>
     <td>${changeCell(row.d[0], row.d[1])}</td>
     <td>${changeCell(row.d5[0], row.d5[1])}</td>
@@ -485,30 +641,57 @@ function deleteRow(idx, isBond) {
 }
 
 // ========== Add Modal ==========
+let selectedPreset = null;
+
+document.querySelectorAll('.preset-chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    document.querySelectorAll('.preset-chip').forEach(c => c.classList.remove('selected'));
+    chip.classList.add('selected');
+    document.getElementById('add-name').value = chip.dataset.name;
+    document.getElementById('add-symbol').value = chip.dataset.symbol;
+    document.getElementById('add-type').value = chip.dataset.type;
+    selectedPreset = chip.dataset.symbol;
+  });
+});
+
 function openAddModal() {
   document.getElementById('add-modal').classList.add('show');
   document.getElementById('add-name').value = '';
-  document.getElementById('add-code').value = '';
+  document.getElementById('add-symbol').value = '';
+  document.getElementById('add-type').value = 'index';
+  document.getElementById('add-status').className = 'modal-status';
+  document.getElementById('add-status').textContent = '';
+  document.querySelectorAll('.preset-chip').forEach(c => c.classList.remove('selected'));
+  selectedPreset = null;
   document.getElementById('add-name').focus();
 }
 function closeAddModal() {
   document.getElementById('add-modal').classList.remove('show');
 }
 
-function confirmAdd() {
+async function confirmAdd() {
   const name = document.getElementById('add-name').value.trim();
-  const code = document.getElementById('add-code').value.trim();
+  const symbol = document.getElementById('add-symbol').value.trim();
   const type = document.getElementById('add-type').value;
-  if (!name) { showToast('请输入标的名称'); return; }
 
-  const displayName = code ? `${name} (${code})` : name;
+  if (!name) { showToast('请输入标的名称'); return; }
+  if (!symbol) { showToast('请输入Yahoo代码以自动获取数据'); return; }
+
   const dot = TYPE_DOT[type] || 'dot-custom';
   const isBond = type === 'bond';
   const placeholder = isBond ? '-- bp' : '--';
 
+  const confirmBtn = document.getElementById('add-confirm-btn');
+  confirmBtn.disabled = true;
+  const statusEl = document.getElementById('add-status');
+  statusEl.className = 'modal-status fetching';
+  statusEl.textContent = '⏳ 正在从 Yahoo Finance 获取数据...';
+
+  // First add row with placeholder
   const newRow = {
     id: 'custom_' + Date.now(),
-    name: displayName,
+    name: name,
+    symbol: symbol,
     dot: dot,
     price: '--',
     d: [placeholder, 'flat'],
@@ -530,10 +713,41 @@ function confirmAdd() {
     data.push(newRow);
     setMainData(data);
   }
-
   renderAll();
-  closeAddModal();
-  showToast(`已添加: ${displayName}`);
+
+  // Then fetch data
+  try {
+    const ydata = await fetchYahooData(symbol);
+    if (ydata) {
+      // Update the row in storage
+      if (isBond) {
+        const data = getBondData();
+        const row = data.find(r => r.id === newRow.id);
+        if (row) Object.assign(row, ydata);
+        setBondData(data);
+      } else {
+        const data = getMainData();
+        const row = data.find(r => r.id === newRow.id);
+        if (row) Object.assign(row, ydata);
+        setMainData(data);
+      }
+      renderAll();
+      statusEl.className = 'modal-status success';
+      statusEl.textContent = '✅ 数据获取成功！已填入表格。';
+      showToast(`已添加: ${name} ✓`);
+    } else {
+      statusEl.className = 'modal-status error';
+      statusEl.textContent = '⚠️ 无法自动获取数据（可能是CORS限制），请手动输入或稍后重试。行已添加，数据待填充。';
+      showToast(`已添加: ${name}（数据待填充）`);
+    }
+  } catch(e) {
+    statusEl.className = 'modal-status error';
+    statusEl.textContent = '⚠️ 数据获取失败: ' + e.message;
+    showToast(`已添加: ${name}（数据待填充）`);
+  }
+
+  confirmBtn.disabled = false;
+  setTimeout(() => closeAddModal(), 1500);
 }
 
 // Close modal on overlay click
@@ -546,7 +760,7 @@ function showToast(msg) {
   const el = document.getElementById('toast');
   el.textContent = msg;
   el.classList.add('show');
-  setTimeout(() => el.classList.remove('show'), 2000);
+  setTimeout(() => el.classList.remove('show'), 2500);
 }
 
 // ========== Init ==========
