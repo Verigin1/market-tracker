@@ -47,6 +47,7 @@
     font-size: 13px; font-weight: 600; color: var(--text-secondary);
     text-transform: uppercase; letter-spacing: 1.5px;
     margin: 28px 0 14px; padding-left: 2px;
+    display: flex; align-items: center; justify-content: space-between;
   }
   .scroll-hint {
     display: none; font-size: 10px; color: var(--text-secondary);
@@ -56,7 +57,7 @@
     background: var(--bg-card); border: 1px solid var(--border);
     border-radius: 12px; overflow-x: auto; -webkit-overflow-scrolling: touch;
   }
-  table { width: 100%; border-collapse: collapse; min-width: 880px; }
+  table { width: 100%; border-collapse: collapse; min-width: 960px; }
   thead th {
     font-size: 11px; font-weight: 600; color: var(--text-secondary);
     text-transform: uppercase; letter-spacing: 0.8px;
@@ -64,7 +65,8 @@
     background: rgba(0,0,0,0.2); border-bottom: 1px solid var(--border);
     position: sticky; top: 0; z-index: 1;
   }
-  thead th:first-child { text-align: left; padding-left: 16px; min-width: 140px; }
+  thead th:first-child { text-align: center; padding-left: 8px; min-width: 48px; width: 48px; }
+  thead th:nth-child(2) { text-align: left; padding-left: 4px; min-width: 140px; }
   thead th.col-long { color: #a78bfa; }
   tbody td {
     padding: 12px 8px; text-align: right; font-size: 13px;
@@ -72,8 +74,10 @@
     font-variant-numeric: tabular-nums; white-space: nowrap;
   }
   tbody td:first-child {
-    text-align: left; padding-left: 16px; font-weight: 600; font-size: 13px;
-    position: sticky; left: 0; background: var(--bg-card); z-index: 2;
+    text-align: center; padding: 4px 2px; width: 48px; min-width: 48px;
+  }
+  tbody td:nth-child(2) {
+    text-align: left; padding-left: 4px; font-weight: 600; font-size: 13px;
   }
   tbody tr:last-child td { border-bottom: none; }
   tbody tr:hover { background: rgba(255,255,255,0.02); }
@@ -92,6 +96,79 @@
   .dot-gold { background: var(--gold); }
   .dot-crypto { background: #f7931a; }
   .dot-bond { background: #8b5cf6; }
+  .dot-custom { background: #06b6d4; }
+
+  /* Row action buttons */
+  .row-actions {
+    display: flex; align-items: center; justify-content: center; gap: 1px;
+    opacity: 0.3; transition: opacity 0.2s;
+  }
+  tbody tr:hover .row-actions { opacity: 1; }
+  .row-actions button {
+    background: none; border: none; color: var(--text-secondary);
+    cursor: pointer; padding: 4px 3px; font-size: 11px; line-height: 1;
+    border-radius: 3px; transition: all 0.15s;
+  }
+  .row-actions button:hover { color: var(--text-primary); background: rgba(255,255,255,0.08); }
+  .row-actions .btn-del:hover { color: var(--red); background: var(--red-bg); }
+  .row-actions .btn-up:hover, .row-actions .btn-down:hover { color: var(--blue); background: rgba(59,130,246,0.12); }
+
+  /* Add button */
+  .add-row-bar {
+    display: flex; align-items: center; justify-content: center;
+    gap: 8px; padding: 10px 16px;
+    border-top: 1px dashed rgba(42,52,80,0.6);
+    cursor: pointer; transition: background 0.2s;
+    color: var(--text-secondary); font-size: 12px;
+  }
+  .add-row-bar:hover { background: rgba(255,255,255,0.03); color: var(--text-primary); }
+  .add-row-bar .plus-icon {
+    width: 20px; height: 20px; border-radius: 50%;
+    border: 1.5px dashed var(--text-secondary);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; transition: border-color 0.2s;
+  }
+  .add-row-bar:hover .plus-icon { border-color: var(--gold); color: var(--gold); }
+
+  /* Add modal */
+  .modal-overlay {
+    display: none; position: fixed; top:0; left:0; right:0; bottom:0;
+    background: rgba(0,0,0,0.6); z-index: 100;
+    justify-content: center; align-items: center;
+  }
+  .modal-overlay.show { display: flex; }
+  .modal-box {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 14px; padding: 28px 32px; width: 90%; max-width: 420px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  }
+  .modal-box h3 {
+    font-size: 16px; font-weight: 700; margin-bottom: 18px; color: var(--gold);
+  }
+  .modal-box label {
+    display: block; font-size: 11px; font-weight: 600; color: var(--text-secondary);
+    text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 6px; margin-top: 14px;
+  }
+  .modal-box label:first-of-type { margin-top: 0; }
+  .modal-box input, .modal-box select {
+    width: 100%; padding: 10px 12px; border: 1px solid var(--border);
+    border-radius: 8px; background: var(--bg-primary); color: var(--text-primary);
+    font-size: 13px; outline: none; transition: border-color 0.2s;
+  }
+  .modal-box input:focus, .modal-box select:focus { border-color: var(--gold); }
+  .modal-box select option { background: var(--bg-card); }
+  .modal-hint { font-size: 10px; color: var(--text-secondary); margin-top: 4px; opacity: 0.7; }
+  .modal-btns { display: flex; gap: 10px; margin-top: 22px; justify-content: flex-end; }
+  .modal-btns button {
+    padding: 8px 20px; border-radius: 8px; font-size: 13px; font-weight: 600;
+    cursor: pointer; border: none; transition: all 0.15s;
+  }
+  .btn-cancel { background: var(--bg-primary); color: var(--text-secondary); border: 1px solid var(--border) !important; }
+  .btn-cancel:hover { color: var(--text-primary); border-color: var(--text-secondary) !important; }
+  .btn-confirm { background: var(--gold); color: #1a1a2e; }
+  .btn-confirm:hover { background: #e8b94a; }
+  .btn-confirm:disabled { opacity: 0.4; cursor: not-allowed; }
+
   .yield-header {
     background: rgba(139,92,246,0.08); border-left: 3px solid #8b5cf6;
     padding: 10px 16px; margin-top: 24px; border-radius: 0 8px 8px 0;
@@ -127,6 +204,16 @@
   }
   .footer a { color: var(--gold); text-decoration: none; }
 
+  /* Toast notification */
+  .toast {
+    position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(80px);
+    background: var(--bg-card); border: 1px solid var(--border);
+    padding: 10px 20px; border-radius: 10px; font-size: 13px;
+    color: var(--text-primary); box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+    opacity: 0; transition: all 0.3s ease; z-index: 200; pointer-events: none;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
   /* Mobile */
   @media (max-width: 768px) {
     .container { padding: 12px 8px; }
@@ -136,11 +223,14 @@
     .scroll-hint { display: block; }
     .table-wrap { border-radius: 8px; }
     thead th { padding: 10px 6px; font-size: 9px; letter-spacing: 0.4px; }
-    thead th:first-child { padding-left: 12px; min-width: 100px; }
+    thead th:first-child { padding-left: 4px; min-width: 36px; width: 36px; }
+    thead th:nth-child(2) { padding-left: 4px; min-width: 100px; }
     tbody td { padding: 10px 6px; font-size: 10px; }
-    tbody td:first-child { padding-left: 12px; font-size: 10px; }
+    tbody td:first-child { padding: 4px 2px; width: 36px; min-width: 36px; }
+    tbody td:nth-child(2) { padding-left: 4px; font-size: 10px; }
     .price { font-size: 11px; }
     .change { font-size: 9px; padding: 2px 4px; }
+    .row-actions button { font-size: 9px; padding: 3px 2px; }
     .section-title { margin: 20px 0 10px; font-size: 11px; }
     .yield-header { font-size: 11px; padding: 8px 12px; margin-top: 18px; }
     .event-card { padding: 14px 14px; }
@@ -149,6 +239,7 @@
     .summary-box { padding: 14px 14px; }
     .summary-box p { font-size: 12px; }
     .footer { padding: 24px 0 12px; font-size: 10px; }
+    .modal-box { padding: 20px 18px; margin: 0 12px; }
   }
 </style>
 </head>
@@ -163,13 +254,16 @@
     <div class="update-badge">6月16日收盘 · 更新于 06-17 14:00</div>
   </div>
 
-  <div class="section-title">指数与商品</div>
+  <div class="section-title">
+    <span>指数与商品</span>
+  </div>
   <div class="scroll-hint">← 左右滑动查看完整数据 →</div>
   <div class="table-wrap">
-    <table>
+    <table id="main-table">
       <thead>
         <tr>
-          <th>标的</th>
+          <th></th>
+          <th style="text-align:left;">标的</th>
           <th>最新价格</th>
           <th>当日</th>
           <th>5日</th>
@@ -181,90 +275,23 @@
           <th class="col-long">10年</th>
         </tr>
       </thead>
-      <tbody>
-        <tr>
-          <td><span class="asset-dot dot-us"></span>S&P 500</td>
-          <td class="price">7,511.35</td>
-          <td><span class="change down">-0.57%</span></td>
-          <td><span class="change up">+1.1%</span></td>
-          <td><span class="change up">+0.3%</span></td>
-          <td><span class="change up">+9.7%</span></td>
-          <td><span class="change up">+25%</span></td>
-          <td><span class="change up">+47%</span></td>
-          <td><span class="change up">+90%</span></td>
-          <td><span class="change up">+325%</span></td>
-        </tr>
-        <tr>
-          <td><span class="asset-dot dot-us"></span>NASDAQ</td>
-          <td class="price">26,376.34</td>
-          <td><span class="change down">-1.15%</span></td>
-          <td><span class="change up">+1.9%</span></td>
-          <td><span class="change down">-1.0%</span></td>
-          <td><span class="change up">+11.4%</span></td>
-          <td><span class="change up">+29%</span></td>
-          <td><span class="change up">+89%</span></td>
-          <td><span class="change up">+600%</span></td>
-          <td><span class="change up">+471%</span></td>
-        </tr>
-        <tr>
-          <td><span class="asset-dot dot-cn"></span>上证指数</td>
-          <td class="price">4,091.89</td>
-          <td><span class="change down">-0.11%</span></td>
-          <td><span class="change up">+1.6%</span></td>
-          <td><span class="change up">+2.0%</span></td>
-          <td><span class="change up">+9.4%</span></td>
-          <td><span class="change up">+15%</span></td>
-          <td><span class="change up">+22%</span></td>
-          <td><span class="change up">+41%</span></td>
-          <td><span class="change up">+73%</span></td>
-        </tr>
-        <tr>
-          <td><span class="asset-dot dot-hk"></span>恒生指数</td>
-          <td class="price">24,493.95</td>
-          <td><span class="change down">-1.40%</span></td>
-          <td><span class="change down">-1.5%</span></td>
-          <td><span class="change down">-7.5%</span></td>
-          <td><span class="change up">+12.6%</span></td>
-          <td><span class="change up">+27%</span></td>
-          <td><span class="change down">-8%</span></td>
-          <td><span class="change down">-12%</span></td>
-          <td><span class="change down">-19%</span></td>
-        </tr>
-        <tr>
-          <td><span class="asset-dot dot-gold"></span>黄金 Spot</td>
-          <td class="price">$4,328</td>
-          <td><span class="change up">+0.39%</span></td>
-          <td><span class="change up">+1.8%</span></td>
-          <td><span class="change down">-0.5%</span></td>
-          <td><span class="change up">+12.9%</span></td>
-          <td><span class="change up">+38%</span></td>
-          <td><span class="change up">+118%</span></td>
-          <td><span class="change up">+122%</span></td>
-          <td><span class="change up">+290%</span></td>
-        </tr>
-        <tr>
-          <td><span class="asset-dot dot-crypto"></span>比特币</td>
-          <td class="price">$66,281</td>
-          <td><span class="change up">+0.96%</span></td>
-          <td><span class="change up">+5.7%</span></td>
-          <td><span class="change down">-19.5%</span></td>
-          <td><span class="change down">-12.4%</span></td>
-          <td><span class="change down">-18%</span></td>
-          <td><span class="change up">+155%</span></td>
-          <td><span class="change up">+101%</span></td>
-          <td><span class="change up">+17250%</span></td>
-        </tr>
+      <tbody id="main-tbody">
       </tbody>
     </table>
+    <div class="add-row-bar" id="add-btn" onclick="openAddModal()">
+      <span class="plus-icon">+</span>
+      <span>添加指数或股票</span>
+    </div>
   </div>
 
   <div class="yield-header">美债收益率（变化单位: bp · 红色=上行 绿色=下行）</div>
   <div class="scroll-hint">← 左右滑动查看完整数据 →</div>
   <div class="table-wrap" style="margin-top:8px;">
-    <table>
+    <table id="bond-table">
       <thead>
         <tr>
-          <th>收益率指标</th>
+          <th></th>
+          <th style="text-align:left;">收益率指标</th>
           <th>当前收益率</th>
           <th>当日</th>
           <th>5日</th>
@@ -276,31 +303,7 @@
           <th class="col-long">10年</th>
         </tr>
       </thead>
-      <tbody>
-        <tr>
-          <td><span class="asset-dot dot-bond"></span>10年期美债</td>
-          <td class="price">4.44%</td>
-          <td><span class="change down">-3.4bp</span></td>
-          <td><span class="change down">-5bp</span></td>
-          <td><span class="change down">-9bp</span></td>
-          <td><span class="change up">+30bp</span></td>
-          <td><span class="change up">+45bp</span></td>
-          <td><span class="change up">+75bp</span></td>
-          <td><span class="change up">+280bp</span></td>
-          <td><span class="change flat">0bp</span></td>
-        </tr>
-        <tr>
-          <td><span class="asset-dot dot-bond"></span>1年期美债</td>
-          <td class="price">4.05%</td>
-          <td><span class="change down">-0.8bp</span></td>
-          <td><span class="change down">-2bp</span></td>
-          <td><span class="change down">-5bp</span></td>
-          <td><span class="change down">-39bp</span></td>
-          <td><span class="change down">-72bp</span></td>
-          <td><span class="change down">-157bp</span></td>
-          <td><span class="change down">-245bp</span></td>
-          <td><span class="change down">-199bp</span></td>
-        </tr>
+      <tbody id="bond-tbody">
       </tbody>
     </table>
   </div>
@@ -358,5 +361,196 @@
   </div>
 
 </div>
+
+<!-- Add Modal -->
+<div class="modal-overlay" id="add-modal">
+  <div class="modal-box">
+    <h3>添加标的</h3>
+    <label>名称</label>
+    <input type="text" id="add-name" placeholder="如：日经225、沪深300、AAPL">
+    <label>代码 <span style="font-weight:400;text-transform:none;letter-spacing:0;">(可选)</span></label>
+    <input type="text" id="add-code" placeholder="如：NI225、000300.SH、AAPL">
+    <label>类别</label>
+    <select id="add-type">
+      <option value="index">指数</option>
+      <option value="stock">股票</option>
+      <option value="commodity">商品</option>
+      <option value="crypto">加密货币</option>
+      <option value="bond">债券/收益率</option>
+    </select>
+    <div class="modal-hint">添加后，数据将在下次更新时自动填充。当前显示为占位行。</div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeAddModal()">取消</button>
+      <button class="btn-confirm" id="add-confirm-btn" onclick="confirmAdd()">添加</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ========== Data Layer ==========
+const DEFAULT_MAIN = [
+  { id:'sp500', name:'S&P 500', dot:'dot-us', price:'7,511.35', d:['-0.57%','down'], d5:['+1.1%','up'], d20:['+0.3%','up'], ytd:['+9.7%','up'], y1:['+25%','up'], y3:['+47%','up'], y5:['+90%','up'], y10:['+325%','up'] },
+  { id:'nasdaq', name:'NASDAQ', dot:'dot-us', price:'26,376.34', d:['-1.15%','down'], d5:['+1.9%','up'], d20:['-1.0%','down'], ytd:['+11.4%','up'], y1:['+29%','up'], y3:['+89%','up'], y5:['+600%','up'], y10:['+471%','up'] },
+  { id:'shcomp', name:'上证指数', dot:'dot-cn', price:'4,091.89', d:['-0.11%','down'], d5:['+1.6%','up'], d20:['+2.0%','up'], ytd:['+9.4%','up'], y1:['+15%','up'], y3:['+22%','up'], y5:['+41%','up'], y10:['+73%','up'] },
+  { id:'hsi', name:'恒生指数', dot:'dot-hk', price:'24,493.95', d:['-1.40%','down'], d5:['-1.5%','down'], d20:['-7.5%','down'], ytd:['+12.6%','up'], y1:['+27%','up'], y3:['-8%','down'], y5:['-12%','down'], y10:['-19%','down'] },
+  { id:'gold', name:'黄金 Spot', dot:'dot-gold', price:'$4,328', d:['+0.39%','up'], d5:['+1.8%','up'], d20:['-0.5%','down'], ytd:['+12.9%','up'], y1:['+38%','up'], y3:['+118%','up'], y5:['+122%','up'], y10:['+290%','up'] },
+  { id:'btc', name:'比特币', dot:'dot-crypto', price:'$66,281', d:['+0.96%','up'], d5:['+5.7%','up'], d20:['-19.5%','down'], ytd:['-12.4%','down'], y1:['-18%','down'], y3:['+155%','up'], y5:['+101%','up'], y10:['+17250%','up'] },
+];
+
+const DEFAULT_BOND = [
+  { id:'us10y', name:'10年期美债', dot:'dot-bond', price:'4.44%', d:['-3.4bp','down'], d5:['-5bp','down'], d20:['-9bp','down'], ytd:['+30bp','up'], y1:['+45bp','up'], y3:['+75bp','up'], y5:['+280bp','up'], y10:['0bp','flat'] },
+  { id:'us1y', name:'1年期美债', dot:'dot-bond', price:'4.05%', d:['-0.8bp','down'], d5:['-2bp','down'], d20:['-5bp','down'], ytd:['-39bp','down'], y1:['-72bp','down'], y3:['-157bp','down'], y5:['-245bp','down'], y10:['-199bp','down'] },
+];
+
+const TYPE_DOT = { index:'dot-us', stock:'dot-custom', commodity:'dot-gold', crypto:'dot-crypto', bond:'dot-bond' };
+
+function getMainData() {
+  const saved = localStorage.getItem('mt_main');
+  if (saved) return JSON.parse(saved);
+  return [...DEFAULT_MAIN];
+}
+function setMainData(data) {
+  localStorage.setItem('mt_main', JSON.stringify(data));
+}
+function getBondData() {
+  const saved = localStorage.getItem('mt_bond');
+  if (saved) return JSON.parse(saved);
+  return [...DEFAULT_BOND];
+}
+function setBondData(data) {
+  localStorage.setItem('mt_bond', JSON.stringify(data));
+}
+
+// ========== Render ==========
+function changeCell(val, dir) {
+  const cls = dir === 'up' ? 'up' : dir === 'down' ? 'down' : 'flat';
+  return `<span class="change ${cls}">${val}</span>`;
+}
+
+function actionBtns(idx, total, isBond) {
+  return `<div class="row-actions">
+    <button class="btn-up" title="上移" onclick="moveRow(${idx},-1,${isBond})"${idx===0?' disabled style="opacity:0.2"':''}>▲</button>
+    <button class="btn-down" title="下移" onclick="moveRow(${idx},1,${isBond})"${idx===total-1?' disabled style="opacity:0.2"':''}>▼</button>
+    <button class="btn-del" title="删除" onclick="deleteRow(${idx},${isBond})">✕</button>
+  </div>`;
+}
+
+function renderRow(row, idx, total, isBond) {
+  return `<tr>
+    <td>${actionBtns(idx, total, isBond)}</td>
+    <td><span class="asset-dot ${row.dot}"></span>${row.name}</td>
+    <td class="price">${row.price}</td>
+    <td>${changeCell(row.d[0], row.d[1])}</td>
+    <td>${changeCell(row.d5[0], row.d5[1])}</td>
+    <td>${changeCell(row.d20[0], row.d20[1])}</td>
+    <td>${changeCell(row.ytd[0], row.ytd[1])}</td>
+    <td>${changeCell(row.y1[0], row.y1[1])}</td>
+    <td>${changeCell(row.y3[0], row.y3[1])}</td>
+    <td>${changeCell(row.y5[0], row.y5[1])}</td>
+    <td>${changeCell(row.y10[0], row.y10[1])}</td>
+  </tr>`;
+}
+
+function renderAll() {
+  const mainData = getMainData();
+  const bondData = getBondData();
+  document.getElementById('main-tbody').innerHTML = mainData.map((r,i) => renderRow(r, i, mainData.length, false)).join('');
+  document.getElementById('bond-tbody').innerHTML = bondData.map((r,i) => renderRow(r, i, bondData.length, true)).join('');
+}
+
+// ========== Actions ==========
+function moveRow(idx, dir, isBond) {
+  const getter = isBond ? getBondData : getMainData;
+  const setter = isBond ? setBondData : setMainData;
+  const data = getter();
+  const newIdx = idx + dir;
+  if (newIdx < 0 || newIdx >= data.length) return;
+  [data[idx], data[newIdx]] = [data[newIdx], data[idx]];
+  setter(data);
+  renderAll();
+}
+
+function deleteRow(idx, isBond) {
+  const getter = isBond ? getBondData : getMainData;
+  const setter = isBond ? setBondData : setMainData;
+  const data = getter();
+  const name = data[idx].name;
+  data.splice(idx, 1);
+  setter(data);
+  renderAll();
+  showToast(`已删除: ${name}`);
+}
+
+// ========== Add Modal ==========
+function openAddModal() {
+  document.getElementById('add-modal').classList.add('show');
+  document.getElementById('add-name').value = '';
+  document.getElementById('add-code').value = '';
+  document.getElementById('add-name').focus();
+}
+function closeAddModal() {
+  document.getElementById('add-modal').classList.remove('show');
+}
+
+function confirmAdd() {
+  const name = document.getElementById('add-name').value.trim();
+  const code = document.getElementById('add-code').value.trim();
+  const type = document.getElementById('add-type').value;
+  if (!name) { showToast('请输入标的名称'); return; }
+
+  const displayName = code ? `${name} (${code})` : name;
+  const dot = TYPE_DOT[type] || 'dot-custom';
+  const isBond = type === 'bond';
+  const placeholder = isBond ? '-- bp' : '--';
+
+  const newRow = {
+    id: 'custom_' + Date.now(),
+    name: displayName,
+    dot: dot,
+    price: '--',
+    d: [placeholder, 'flat'],
+    d5: [placeholder, 'flat'],
+    d20: [placeholder, 'flat'],
+    ytd: [placeholder, 'flat'],
+    y1: [placeholder, 'flat'],
+    y3: [placeholder, 'flat'],
+    y5: [placeholder, 'flat'],
+    y10: [placeholder, 'flat'],
+  };
+
+  if (isBond) {
+    const data = getBondData();
+    data.push(newRow);
+    setBondData(data);
+  } else {
+    const data = getMainData();
+    data.push(newRow);
+    setMainData(data);
+  }
+
+  renderAll();
+  closeAddModal();
+  showToast(`已添加: ${displayName}`);
+}
+
+// Close modal on overlay click
+document.getElementById('add-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeAddModal();
+});
+
+// ========== Toast ==========
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2000);
+}
+
+// ========== Init ==========
+renderAll();
+</script>
 </body>
 </html>
