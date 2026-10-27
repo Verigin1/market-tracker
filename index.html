@@ -1,762 +1,288 @@
 <!DOCTYPE html>
-<html
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-<title>指数与资产价格跟踪 | Verigin Tech</title>
-<style>
-  :root {
-    --bg-primary: #0a0e1a;
-    --bg-card: #1a2035;
-    --border: #2a3450;
-    --text-primary: #e8ecf1;
-    --text-secondary: #8892a8;
-    --red: #ef4444;
-    --red-bg: rgba(239,68,68,0.12);
-    --green: #22c55e;
-    --green-bg: rgba(34,197,94,0.12);
-    --gold: #d4a853;
-    --blue: #3b82f6;
-  }
-  * { margin:0; padding:0; box-sizing:border-box; }
-  html { overflow-x: hidden; }
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
-    background: var(--bg-primary);
-    color: var(--text-primary);
-    min-height: 100vh;
-    overflow-x: hidden;
-  }
-  .container { max-width: 1200px; margin: 0 auto; padding: 24px 20px; }
-  .header {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 20px 0 28px; border-bottom: 1px solid var(--border);
-  }
-  .header-left h1 {
-    font-size: 22px; font-weight: 700; letter-spacing: -0.5px;
-    background: linear-gradient(135deg, var(--gold), #f5d98a);
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-  }
-  .header-left p { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
-  .update-badge {
-    font-size: 11px; color: var(--text-secondary);
-    background: var(--bg-card); border: 1px solid var(--border);
-    padding: 6px 12px; border-radius: 20px; white-space: nowrap;
-  }
-  .section-title {
-    font-size: 13px; font-weight: 600; color: var(--text-secondary);
-    text-transform: uppercase; letter-spacing: 1.5px;
-    margin: 28px 0 14px; padding-left: 2px;
-    display: flex; align-items: center; justify-content: space-between;
-  }
-  .scroll-hint {
-    display: none; font-size: 10px; color: var(--text-secondary);
-    text-align: center; padding: 6px 0 4px; opacity: 0.5;
-  }
-  .table-wrap {
-    background: var(--bg-card); border: 1px solid var(--border);
-    border-radius: 12px; overflow-x: auto; -webkit-overflow-scrolling: touch;
-  }
-  table { width: 100%; border-collapse: collapse; min-width: 960px; }
-  thead th {
-    font-size: 11px; font-weight: 600; color: var(--text-secondary);
-    text-transform: uppercase; letter-spacing: 0.8px;
-    padding: 14px 8px; text-align: right; white-space: nowrap;
-    background: rgba(0,0,0,0.2); border-bottom: 1px solid var(--border);
-    position: sticky; top: 0; z-index: 1;
-  }
-  thead th:first-child { text-align: center; padding-left: 8px; min-width: 48px; width: 48px; }
-  thead th:nth-child(2) { text-align: left; padding-left: 4px; min-width: 140px; }
-  thead th.col-long { color: #a78bfa; }
-  tbody td {
-    padding: 12px 8px; text-align: right; font-size: 13px;
-    border-bottom: 1px solid rgba(42,52,80,0.5);
-    font-variant-numeric: tabular-nums; white-space: nowrap;
-  }
-  tbody td:first-child {
-    text-align: center; padding: 4px 2px; width: 48px; min-width: 48px;
-  }
-  tbody td:nth-child(2) {
-    text-align: left; padding-left: 4px; font-weight: 600; font-size: 13px;
-  }
-  tbody tr:last-child td { border-bottom: none; }
-  tbody tr:hover { background: rgba(255,255,255,0.02); }
-  .price { font-weight: 700; font-size: 14px; }
-  .change { font-weight: 600; font-size: 12px; display: inline-block; }
-  .change.up { color: var(--red); background: var(--red-bg); padding: 3px 7px; border-radius: 4px; }
-  .change.down { color: var(--green); background: var(--green-bg); padding: 3px 7px; border-radius: 4px; }
-  .change.flat { color: var(--text-secondary); }
-  .asset-dot {
-    display: inline-block; width: 8px; height: 8px; border-radius: 50%;
-    margin-right: 6px; vertical-align: middle;
-  }
-  .dot-us { background: var(--blue); }
-  .dot-cn { background: var(--red); }
-  .dot-hk { background: #e8a630; }
-  .dot-gold { background: var(--gold); }
-  .dot-crypto { background: #f7931a; }
-  .dot-bond { background: #8b5cf6; }
-  .dot-custom { background: #06b6d4; }
-
-  /* Row actions */
-  .row-actions {
-    display: flex; align-items: center; justify-content: center; gap: 1px;
-    opacity: 0.3; transition: opacity 0.2s;
-  }
-  tbody tr:hover .row-actions { opacity: 1; }
-  .row-actions button {
-    background: none; border: none; color: var(--text-secondary);
-    cursor: pointer; padding: 4px 3px; font-size: 11px; line-height: 1;
-    border-radius: 3px; transition: all 0.15s;
-  }
-  .row-actions button:hover { color: var(--text-primary); background: rgba(255,255,255,0.08); }
-  .row-actions .btn-del:hover { color: var(--red); background: var(--red-bg); }
-  .row-actions .btn-up:hover, .row-actions .btn-down:hover { color: var(--blue); background: rgba(59,130,246,0.12); }
-
-  /* Add button */
-  .add-row-bar {
-    display: flex; align-items: center; justify-content: center;
-    gap: 8px; padding: 10px 16px;
-    border-top: 1px dashed rgba(42,52,80,0.6);
-    cursor: pointer; transition: background 0.2s;
-    color: var(--text-secondary); font-size: 12px;
-  }
-  .add-row-bar:hover { background: rgba(255,255,255,0.03); color: var(--text-primary); }
-  .add-row-bar .plus-icon {
-    width: 20px; height: 20px; border-radius: 50%;
-    border: 1.5px dashed var(--text-secondary);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 13px; transition: border-color 0.2s;
-  }
-  .add-row-bar:hover .plus-icon { border-color: var(--gold); color: var(--gold); }
-
-  /* Loading indicator in row */
-  .row-loading td { color: var(--text-secondary); font-style: italic; }
-  .row-loading .price::after { content: ''; display: inline-block; width: 40px; height: 12px; background: rgba(255,255,255,0.06); border-radius: 3px; vertical-align: middle; margin-left: 6px; }
-
-  /* Modal */
-  .modal-overlay {
-    display: none; position: fixed; top:0; left:0; right:0; bottom:0;
-    background: rgba(0,0,0,0.6); z-index: 100;
-    justify-content: center; align-items: center;
-  }
-  .modal-overlay.show { display: flex; }
-  .modal-box {
-    background: var(--bg-card); border: 1px solid var(--border);
-    border-radius: 14px; padding: 28px 32px; width: 90%; max-width: 460px;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-  }
-  .modal-box h3 {
-    font-size: 16px; font-weight: 700; margin-bottom: 18px; color: var(--gold);
-  }
-  .modal-box label {
-    display: block; font-size: 11px; font-weight: 600; color: var(--text-secondary);
-    text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 6px; margin-top: 14px;
-  }
-  .modal-box label:first-of-type { margin-top: 0; }
-  .modal-box input, .modal-box select {
-    width: 100%; padding: 10px 12px; border: 1px solid var(--border);
-    border-radius: 8px; background: var(--bg-primary); color: var(--text-primary);
-    font-size: 13px; outline: none; transition: border-color 0.2s;
-  }
-  .modal-box input:focus, .modal-box select:focus { border-color: var(--gold); }
-  .modal-box select option { background: var(--bg-card); }
-  .modal-hint { font-size: 10px; color: var(--text-secondary); margin-top: 4px; opacity: 0.7; line-height: 1.5; }
-  .modal-status {
-    margin-top: 10px; padding: 8px 12px; border-radius: 6px; font-size: 12px;
-    display: none;
-  }
-  .modal-status.fetching { display: block; background: rgba(59,130,246,0.1); color: var(--blue); }
-  .modal-status.success { display: block; background: rgba(34,197,94,0.1); color: var(--green); }
-  .modal-status.error { display: block; background: rgba(239,68,68,0.1); color: var(--red); }
-  .modal-btns { display: flex; gap: 10px; margin-top: 22px; justify-content: flex-end; }
-  .modal-btns button {
-    padding: 8px 20px; border-radius: 8px; font-size: 13px; font-weight: 600;
-    cursor: pointer; border: none; transition: all 0.15s;
-  }
-  .btn-cancel { background: var(--bg-primary); color: var(--text-secondary); border: 1px solid var(--border) !important; }
-  .btn-cancel:hover { color: var(--text-primary); border-color: var(--text-secondary) !important; }
-  .btn-confirm { background: var(--gold); color: #1a1a2e; }
-  .btn-confirm:hover { background: #e8b94a; }
-  .btn-confirm:disabled { opacity: 0.4; cursor: not-allowed; }
-
-  /* Preset chips */
-  .preset-section { margin-top: 14px; }
-  .preset-section label { margin-bottom: 8px; }
-  .preset-chips { display: flex; flex-wrap: wrap; gap: 6px; }
-  .preset-chip {
-    padding: 5px 10px; border-radius: 6px; font-size: 11px;
-    background: var(--bg-primary); border: 1px solid var(--border);
-    color: var(--text-secondary); cursor: pointer; transition: all 0.15s;
-  }
-  .preset-chip:hover { border-color: var(--gold); color: var(--gold); }
-  .preset-chip.selected { border-color: var(--gold); color: var(--gold); background: rgba(212,168,83,0.1); }
-
-  .yield-header {
-    background: rgba(139,92,246,0.08); border-left: 3px solid #8b5cf6;
-    padding: 10px 16px; margin-top: 24px; border-radius: 0 8px 8px 0;
-    font-size: 12px; color: #a78bfa; font-weight: 600;
-  }
-  .events-grid { display: grid; gap: 14px; margin-top: 14px; }
-  .event-card {
-    background: var(--bg-card); border: 1px solid var(--border);
-    border-radius: 10px; padding: 18px 20px;
-    transition: border-color 0.2s;
-  }
-  .event-card:hover { border-color: rgba(212,168,83,0.3); }
-  .event-card .tag {
-    display: inline-block; font-size: 10px; font-weight: 700;
-    padding: 2px 8px; border-radius: 3px; margin-right: 8px;
-    text-transform: uppercase; letter-spacing: 0.5px;
-  }
-  .tag-bearish { background: var(--red-bg); color: var(--red); }
-  .tag-bullish { background: var(--green-bg); color: var(--green); }
-  .event-card h3 { font-size: 14px; font-weight: 700; margin: 8px 0 6px; }
-  .event-card p { font-size: 13px; color: var(--text-secondary); line-height: 1.6; }
-  .event-card .source { font-size: 11px; color: var(--text-secondary); margin-top: 8px; opacity: 0.7; }
-  .summary-box {
-    background: linear-gradient(135deg, rgba(212,168,83,0.06), rgba(59,130,246,0.06));
-    border: 1px solid rgba(212,168,83,0.15); border-radius: 10px;
-    padding: 18px 20px; margin-top: 14px;
-  }
-  .summary-box h3 { font-size: 14px; font-weight: 700; color: var(--gold); margin-bottom: 8px; }
-  .summary-box p { font-size: 13px; color: var(--text-secondary); line-height: 1.7; }
-  .footer {
-    text-align: center; padding: 32px 0 16px;
-    font-size: 11px; color: var(--text-secondary); opacity: 0.5;
-  }
-  .footer a { color: var(--gold); text-decoration: none; }
-
-  /* Toast */
-  .toast {
-    position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(80px);
-    background: var(--bg-card); border: 1px solid var(--border);
-    padding: 10px 20px; border-radius: 10px; font-size: 13px;
-    color: var(--text-primary); box-shadow: 0 8px 30px rgba(0,0,0,0.4);
-    opacity: 0; transition: all 0.3s ease; z-index: 200; pointer-events: none;
-  }
-  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-
-  /* Mobile */
-  @media (max-width: 768px) {
-    .container { padding: 12px 8px; }
-    .header { flex-direction: column; align-items: flex-start; gap: 8px; padding: 16px 0 20px; }
-    .header h1 { font-size: 18px; }
-    .update-badge { font-size: 10px; padding: 4px 10px; align-self: flex-start; }
-    .scroll-hint { display: block; }
-    .table-wrap { border-radius: 8px; }
-    thead th { padding: 10px 6px; font-size: 9px; letter-spacing: 0.4px; }
-    thead th:first-child { padding-left: 4px; min-width: 36px; width: 36px; }
-    thead th:nth-child(2) { padding-left: 4px; min-width: 100px; }
-    tbody td { padding: 10px 6px; font-size: 10px; }
-    tbody td:first-child { padding: 4px 2px; width: 36px; min-width: 36px; }
-    tbody td:nth-child(2) { padding-left: 4px; font-size: 10px; }
-    .price { font-size: 11px; }
-    .change { font-size: 9px; padding: 2px 4px; }
-    .row-actions button { font-size: 9px; padding: 3px 2px; }
-    .section-title { margin: 20px 0 10px; font-size: 11px; }
-    .yield-header { font-size: 11px; padding: 8px 12px; margin-top: 18px; }
-    .event-card { padding: 14px 14px; }
-    .event-card h3 { font-size: 13px; }
-    .event-card p { font-size: 12px; }
-    .summary-box { padding: 14px 14px; }
-    .summary-box p { font-size: 12px; }
-    .footer { padding: 24px 0 12px; font-size: 10px; }
-    .modal-box { padding: 20px 18px; margin: 0 12px; }
-    .preset-chips { gap: 4px; }
-    .preset-chip { font-size: 10px; padding: 4px 8px; }
-  }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>全球指数与资产价格跟踪 | Verigin Tech</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #0f0c29 0%, #1a1a2e 50%, #16213e 100%);
+            color: #e0e0e0;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .header {
+            text-align: center;
+            padding: 30px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            background: linear-gradient(90deg, #00d2ff, #3a7bd5);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
+        }
+        .header .subtitle { color: #888; font-size: 14px; }
+        .update-badge {
+            display: inline-block;
+            background: rgba(58, 123, 213, 0.2);
+            border: 1px solid rgba(58, 123, 213, 0.4);
+            border-radius: 20px;
+            padding: 4px 16px;
+            font-size: 12px;
+            color: #7ab8ff;
+            margin-top: 10px;
+        }
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 16px;
+            padding-left: 12px;
+            border-left: 3px solid #3a7bd5;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+            margin-bottom: 30px;
+        }
+        .card {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 12px;
+            padding: 20px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
+        .card .name {
+            font-size: 14px;
+            color: #999;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .card .price {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+        .card .change {
+            font-size: 15px;
+            font-weight: 500;
+        }
+        .card .flag { font-size: 18px; margin-right: 6px; }
+        .up { color: #00e676; }
+        .down { color: #ff5252; }
+        .flat { color: #ffd740; }
+        .bond-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+            margin-bottom: 30px;
+        }
+        .event-section {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 30px;
+        }
+        .event-section h3 {
+            font-size: 16px;
+            color: #7ab8ff;
+            margin-bottom: 16px;
+        }
+        .event-item {
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .event-item:last-child { border-bottom: none; }
+        .event-item .event-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 6px;
+        }
+        .event-item .event-desc {
+            font-size: 13px;
+            color: #aaa;
+            line-height: 1.6;
+        }
+        .event-tag {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-right: 6px;
+        }
+        .tag-fed { background: rgba(255,152,0,0.2); color: #ffb74d; }
+        .tag-ai { background: rgba(0,230,118,0.2); color: #69f0ae; }
+        .tag-oil { background: rgba(255,82,82,0.2); color: #ff8a80; }
+        .tag-cn { background: rgba(255,82,82,0.15); color: #ff8a80; }
+        .tag-hk { background: rgba(255,215,64,0.2); color: #ffd740; }
+        .tag-gold { background: rgba(255,193,7,0.2); color: #ffe082; }
+        .footer {
+            text-align: center;
+            padding: 20px 0;
+            color: #555;
+            font-size: 12px;
+            border-top: 1px solid rgba(255,255,255,0.05);
+        }
+        .disclaimer {
+            font-size: 11px;
+            color: #666;
+            margin-top: 8px;
+            font-style: italic;
+        }
+        @media (max-width: 600px) {
+            .grid, .bond-grid { grid-template-columns: 1fr; }
+            .header h1 { font-size: 22px; }
+        }
+    </style>
 </head>
 <body>
-<div class="container">
+    <div class="container">
+        <div class="header">
+            <h1>🌐 全球指数与资产价格跟踪</h1>
+            <div class="subtitle">Global Index & Asset Price Tracker | Verigin Tech</div>
+            <div class="update-badge" id="update-badge">📅 数据日期：2026年10月27日（周二）收盘 | 更新：2026-10-28 07:00 BJT</div>
+        </div>
 
-  <div class="header">
-    <div class="header-left">
-      <h1>指数与资产价格跟踪</h1>
-      <p>Index & Asset Price Tracker · Verigin Tech</p>
-    </div>
-    <div class="update-badge">标普+0.70% | Anthropic提交IPO | A股分化+0.19% | 黄金重回$4016 | 10Y 4.98%(-1bp) | BTC$80,237 | 更新于 10-27 07:05</div>
-  </div>
+        <div class="section-title">📊 主要指数与资产</div>
+        <div class="grid" id="main-grid">
+            <!-- S&P 500 -->
+            <div class="card">
+                <div class="name"><span class="flag">🇺🇸</span>S&P 500</div>
+                <div class="price up">7,722.60</div>
+                <div class="change up">▲ +45.83 (+0.60%)</div>
+            </div>
+            <!-- NASDAQ -->
+            <div class="card">
+                <div class="name"><span class="flag">🇺🇸</span>NASDAQ Composite</div>
+                <div class="price up">26,477.81</div>
+                <div class="change up">▲ +308.43 (+1.18%)</div>
+            </div>
+            <!-- 上证指数 -->
+            <div class="card">
+                <div class="name"><span class="flag">🇨🇳</span>上证指数</div>
+                <div class="price down">3,648.30</div>
+                <div class="change down">▼ -49.28 (-1.33%)</div>
+            </div>
+            <!-- 恒生指数 -->
+            <div class="card">
+                <div class="name"><span class="flag">🇭🇰</span>恒生指数</div>
+                <div class="price down">23,041.32</div>
+                <div class="change down">▼ -170.49 (-0.73%)</div>
+            </div>
+            <!-- 黄金 -->
+            <div class="card">
+                <div class="name"><span class="flag">🥇</span>Gold Spot (USD/oz)</div>
+                <div class="price up">4,060.14</div>
+                <div class="change up">▲ +$43.13 (+1.07%)</div>
+            </div>
+            <!-- 比特币 -->
+            <div class="card">
+                <div class="name"><span class="flag">₿</span>Bitcoin (BTC/USD)</div>
+                <div class="price up">80,504</div>
+                <div class="change up">▲ +$962 (+1.2%)</div>
+            </div>
+        </div>
 
-  <div class="section-title">
-    <span>指数与商品</span>
-  </div>
-  <div class="scroll-hint">← 左右滑动查看完整数据 →</div>
-  <div class="table-wrap">
-    <table id="main-table">
-      <thead>
-        <tr>
-          <th></th>
-          <th style="text-align:left;">标的</th>
-          <th>最新价格</th>
-          <th>当日</th>
-          <th>5日</th>
-          <th>20日</th>
-          <th>YTD</th>
-          <th>1年</th>
-          <th>3年</th>
-          <th class="col-long">5年</th>
-          <th class="col-long">10年</th>
-        </tr>
-      </thead>
-      <tbody id="main-tbody">
-      </tbody>
-    </table>
-    <div class="add-row-bar" id="add-btn" onclick="openAddModal()">
-      <span class="plus-icon">+</span>
-      <span>添加指数或股票</span>
-    </div>
-  </div>
+        <div class="section-title">🏦 美债收益率</div>
+        <div class="bond-grid" id="bond-grid">
+            <!-- 10Y -->
+            <div class="card">
+                <div class="name"><span class="flag">🇺🇸</span>10Y Treasury Yield</div>
+                <div class="price up">4.997%</div>
+                <div class="change up">▲ +1.45 bp</div>
+            </div>
+            <!-- 2Y -->
+            <div class="card">
+                <div class="name"><span class="flag">🇺🇸</span>2Y Treasury Yield</div>
+                <div class="price up">4.733%</div>
+                <div class="change up">▲ +2.76 bp</div>
+            </div>
+        </div>
 
-  <div class="yield-header">美债收益率（变化单位: bp · 红色=上行 绿色=下行）</div>
-  <div class="scroll-hint">← 左右滑动查看完整数据 →</div>
-  <div class="table-wrap" style="margin-top:8px;">
-    <table id="bond-table">
-      <thead>
-        <tr>
-          <th></th>
-          <th style="text-align:left;">收益率指标</th>
-          <th>当前收益率</th>
-          <th>当日</th>
-          <th>5日</th>
-          <th>20日</th>
-          <th>YTD</th>
-          <th>1年</th>
-          <th>3年</th>
-          <th class="col-long">5年</th>
-          <th class="col-long">10年</th>
-        </tr>
-      </thead>
-      <tbody id="bond-tbody">
-      </tbody>
-    </table>
-  </div>
+        <div class="event-section">
+            <div class="section-title" style="border-left:none;padding-left:0;">📰 当日市场事件分析</div>
+            <h3>2026年10月27日（周二）| 全球市场综述</h3>
 
-  <div style="margin-top:10px; padding:8px 12px; background:rgba(167,139,250,0.06); border-radius:6px; font-size:11px; color:#a78bfa; line-height:1.6;">
-    💡 5年/10年列为含分红再投资的全收益口径（Total Return），与1年/3年列（价格回报）存在口径差异。5Y=2021.10→2026.10，10Y=2016.10→2026.10。数据来源：新华财经 / 财联社 / 东方财富 / FRED / Morningstar / CoinDesk / Kitco / 每日经济新闻
-  </div>
+            <div class="event-item">
+                <div class="event-title"><span class="event-tag tag-fed">央行</span>美联储FOMC议息在即，市场预计按兵不动</div>
+                <div class="event-desc">
+                    美联储于10月27-28日召开FOMC会议，北京时间29日凌晨2点公布利率决议。CME FedWatch工具显示，市场定价10月维持利率不变（3.75%-4.00%）的概率为89.5%，但12月加息25bp的预期已较为充分。投资者将密切关注主席沃什的政策表述——若措辞偏鹰，明确保留12月加息选项，将对全球风险资产形成压制；若弱化后续加息指引，金价与成长股有望修复。高盛、PIMCO均预计本次"鹰派暂停"，12月加息25bp。
+                </div>
+            </div>
 
+            <div class="event-item">
+                <div class="event-title"><span class="event-tag tag-ai">AI</span>Anthropic提交IPO招股书，AI板块连续第二日反弹</div>
+                <div class="event-desc">
+                    AI巨头Anthropic正式向SEC提交S-1文件，拟以"ANT"为代码在纳斯达克上市，目标估值1.8-2万亿美元，募资或达1000亿美元，将成为有史以来最大IPO。招股书显示上半年营收163亿美元，同比增长1304%，但净亏损807亿美元。与此同时，Meta宣布250亿美元股票发行获约5倍超额认购用于AI基建；博通完成630亿美元融资定向服务Anthropic芯片采购；甲骨文扩大与英伟达合作并首次引入谷歌TPU。费城半导体指数连续两日全线上涨，累计涨幅近6.5%。
+                </div>
+            </div>
 
-  <div class="section-title" style="margin-top:36px;">10月26日(周一) 标普+0.70% | Anthropic提交IPO | A股分化+0.19% | 黄金重回$4016 | 10Y 4.98%(-1bp) | BTC$80,237</div>
+            <div class="event-item">
+                <div class="event-title"><span class="event-tag tag-oil">原油</span>国际油价大幅回落，WTI重回100美元下方</div>
+                <div class="event-desc">
+                    WTI原油收跌1.83%报99.90美元/桶，重回100美元关口下方；布伦特跌1.67%报113.88美元/桶。油价回落主因：①波斯湾局势出现降温迹象，伊朗最高领袖呼吁推动结束战争条件；②美国能源部长赖特暗示可能允许更多俄罗斯柴油进入市场；③以色列大选出口民调显示内塔尼亚胡阵营未获多数，地缘风险边际缓和。油价回落缓解了通胀担忧，为美股反弹提供支撑，但持续高油价（布伦特仍在110美元上方）仍通过"通胀→加息预期→实际利率"链条压制黄金。
+                </div>
+            </div>
 
-  
-  
-  <div class="events-grid">
-    <div class="event-card">
-      <span class="tag tag-bullish">利好</span>
-      <span style="font-size:11px;color:var(--text-secondary);">影响: Anthropic/IPO/AI/纳斯达克/半导体/ARM/科技股/人工智能</span>
-      <h3>🤖 Anthropic正式提交IPO招股书 | 首个前沿AI大模型公司上市 | 估值或达1.5-2万亿美元</h3>
-      <p>10月26日，Anthropic向SEC提交S-1招股书，计划以"ANT"为代码在纳斯达克上市，由高盛、摩根士丹利牵头。<strong>2026上半年营收162.86亿美元（同比14倍），GAAP净亏损807.48亿美元（其中724亿为非现金公允价值变动）</strong>，剔除后调整后经营利润+16.18亿美元。年化收入超$100万客户达1900家。亚马逊累计出资$180亿+最高$150亿条件额度，Alphabet承诺最高$400亿。创始团队通过Class F保留50.1%投票权。最快11月19-20日上市。</p>
-      <div class="source">来源：SEC / 证券时报 / 时代财经 / 36氪 · 2026-10-26</div>
-    </div>
+            <div class="event-item">
+                <div class="event-title"><span class="event-tag tag-cn">A股</span>A股缩量普跌，创业板重挫逾3%</div>
+                <div class="event-desc">
+                    A股高开低走，上证指数跌1.33%报3,648.30点，创业板指跌3.41%报2,548.15点，全市场超4,900只个股收跌。成交额降至1.47万亿元，连续第19个交易日不足2万亿。核心矛盾在于内部信心不足——隔夜美股回升、亚太其他市场反弹，但A股未受带动。军工、计算机、电子板块领跌约4%，银行板块逆势上涨1.23%（工行、建行创历史新高）。机构普遍建议"哑铃策略"：高股息防御+科技成长低吸。自7月高点以来，上证指数累计回调超10%，创业板指跌逾41%。
+                </div>
+            </div>
 
-    <div class="event-card">
-      <span class="tag tag-bullish">利好</span>
-      <span style="font-size:11px;color:var(--text-secondary);">影响: 美股/标普/纳指/道指/半导体/ARM/特斯拉/芯片/科技</span>
-      <h3>🇺🇸 美股三大指数齐涨：纳指+0.82% | 半导体全线收涨 | 特斯拉+5.21%</h3>
-      <p>标普500 +0.70%报7,676.77，道指+0.28%报52,361.58，纳指+0.82%报26,169.38。<strong>费城半导体指数+2.95%</strong>，ARM+6.19%、英特尔+4.04%、超威半导体+2.80%。特斯拉+5.21%（巴克莱上调目标价至$450并升评级至增持）。大型科技股分化：Meta-1.88%、苹果-1.10%、谷歌-1.06%。巴西股市因卢拉胜选触发熔断，在美上市巴西公司暴跌（XP-51%）。标普YTD+12.1%。</p>
-      <div class="source">来源：AP News / Morningstar / 中新经纬 / 中国证券报 · 2026-10-26</div>
-    </div>
+            <div class="event-item">
+                <div class="event-title"><span class="event-tag tag-hk">港股</span>恒指跌0.73%，内房股与医药板块承压</div>
+                <div class="event-desc">
+                    恒生指数收报23,041.32点，跌0.73%；恒生科技指数跌1.48%。内房股全线重挫（世茂集团跌近9%、龙湖集团跌7%），里昂指出房企拿地策略仍偏防守审慎。医药板块走弱（康诺亚跌14%），市场进入创新药"出海"商业化兑现期的严格审视阶段。AI算力相关个股逆势走强（智谱涨8.9%），受Anthropic IPO提振。南向资金连续第10日净卖出，全天成交净卖出12.37亿港元。
+                </div>
+            </div>
 
-    <div class="event-card">
-      <span class="tag tag-neutral">中性</span>
-      <span style="font-size:11px;color:var(--text-secondary);">影响: A股/上证/中石油/银行/地产/科技回调/编制新规</span>
-      <h3>🇨🇳 A股涨跌互现：上证+0.19%收3697 | 中石油创18年新高 | 科技硬件回调</h3>
-      <p>上证指数+0.19%报3,697.52，深成指-1.19%报11,534.38，创业板指-1.71%报2,638.23。<strong>中国石油盘中最高13.41元创2008年5月以来新高</strong>（+4.9%），带动石油石化板块领涨。银行午后护盘：工行+2.76%、建行+1.59%。电子板块领跌：南亚新材、三环集团跌超12%。两市成交1.61万亿缩量3,475亿，2,248涨/3,154跌。<strong>上证指数等四项指数编制新规正式实施</strong>（单股权重上限15%、风险股剔除提前）。</p>
-      <div class="source">来源：澎湃新闻 / 上交所 / 东方财富 / 齐鲁壹点 · 2026-10-26</div>
-    </div>
+            <div class="event-item">
+                <div class="event-title"><span class="event-tag tag-gold">黄金</span>现货黄金盘中跌破4000美元后反弹收涨1.1%</div>
+                <div class="event-desc">
+                    黄金经历极端波动日：亚洲时段受油价高企压制+美债收益率上行影响，现货黄金一度跌破3,990美元/盎司；但美股时段随油价回落+避险资金回流，反弹至4,060美元收盘，日内波幅达77美元。年初至今黄金从5,600美元高位回撤约27%。美银策略师指出，美伊冲突结束是金价回到5,000美元的前提条件；摩根士丹利维持金属类资产首选，设定2027年Q2目标价5,000美元。短期方向取决于FOMC决议后的加息路径指引。
+                </div>
+            </div>
+        </div>
 
-    <div class="event-card">
-      <span class="tag tag-bullish">利好</span>
-      <span style="font-size:11px;color:var(--text-secondary);">影响: 黄金/贵金属/$4000/央行购金/ETF/避险/通胀</span>
-      <h3>🥇 黄金重回$4000上方：现货+0.51%报$4,016 | 汇丰下调超配评级</h3>
-      <p>现货黄金收报$4,015.94/盎司（+0.51%），COMEX黄金期货+0.58%报$4,031/盎司。<strong>在跌破$4000后首次收复关口</strong>，日内低$3,977.90、高$4,030.60。汇丰下调黄金超配评级并上调石油至超配。俄罗斯央行今年累计减持约62吨黄金储备，但波兰、中国央行继续增持。分析师认为央行购金仍将为金价提供长期支撑，阶段性回调不改长期上涨趋势。</p>
-      <div class="source">来源：Kitco / 每日经济新闻 / 财联社 / 新浪财经 · 2026-10-26</div>
-    </div>
-
-    <div class="event-card">
-      <span class="tag tag-neutral">中性</span>
-      <span style="font-size:11px;color:var(--text-secondary);">影响: 港股/恒指/中石油/地产/银行/恒生科技</span>
-      <h3>🇭🇰 港股温和收涨：恒指+0.51% | 中国石油+5.78%创历史新高 | 地产走强</h3>
-      <p>恒生指数+0.51%报23,211.81，国企指数+0.59%报7,802.09，<strong>恒生科技-0.36%报3,857.53</strong>。中国石油+5.78%收10.16港元创历史新高，中国石化+4.04%，中海油+3.55%。地产股全线走强：新鸿基+2.56%、长实+2.36%、恒基+1.90%。银行股上涨：工行+2.76%、建行+1.59%。腾讯+0.10%，汇丰-0.21%。全日成交1,757.58亿港元。</p>
-      <div class="source">来源：新华社 / 港交所 / 东方财富 / 哈富证券 · 2026-10-26</div>
-    </div>
-
-    <div class="event-card">
-      <span class="tag tag-neutral">中性</span>
-      <span style="font-size:11px;color:var(--text-secondary);">影响: 美债/收益率/10Y/2Y/FOMC/美联储/沃什/加息</span>
-      <h3>📊 美债收益率涨跌不一：10Y -1bp至4.982% | FOMC本周按兵不动预期90%</h3>
-      <p>10Y美债收益率-1.23bp至4.982%（YTD+83.5bp），2Y+2.56bp至4.705%（YTD+120bp）。<strong>收益率曲线趋平——长端下行、短端上行</strong>。CME FedWatch显示10月按兵不动概率约90%，12月加息25bp概率67.5%。路透调查100位经济学家全部预期12月加息。沃什面临沟通考验：既要解释暂停加息，又要为12月加息保留空间。本周还将公布Q3 GDP+9月PCE（核心PCE预期3.7%）。</p>
-      <div class="source">来源：每日经济新闻 / FRED / 华尔街见闻 / 证券时报 · 2026-10-26</div>
+        <div class="footer">
+            <div>数据来源：新华社、东方财富、财联社、每日经济新闻、AP/Barchart、Kitco、Binance | 交叉验证≥2源</div>
+            <div class="disclaimer">本页面仅供个人参考，不构成投资建议。数据可能存在延迟，请以交易所官方数据为准。</div>
+            <div style="margin-top:8px;">Powered by Verigin Tech © 2026</div>
+        </div>
     </div>
 
-    <div class="event-card">
-      <span class="tag tag-bearish">利空</span>
-      <span style="font-size:11px;color:var(--text-secondary);">影响: 比特币/加密/ETF流出/恐惧贪婪/风险偏好/监管</span>
-      <h3>₿ 比特币跌破$80,000后回升至$80,237(-1.37%) | 8.3万为技术门槛</h3>
-      <p>比特币收报约$80,237(-1.37%)，日内低$79,255、高$80,710。<strong>过去一周跌逾3%，年内跌约7-15%</strong>。美国现货比特币ETF上周合计净流出$7.73亿（10月22日单日流出$6.36亿为6月以来最大）。Coinbase溢价指数连续33天为负。分析师分歧加大：多头看$79,000-$80,000为支撑，空头警告若失守$80,000或触发"投降式抛售"。$83,000为技术与心理双重门槛。加密总市值约$1.61万亿。</p>
-      <div class="source">来源：Barchart / FRED(Coinbase) / 智通财经 / 华尔街见闻 · 2026-10-26</div>
-    </div>
-
-    <div class="event-card">
-      <span class="tag tag-neutral">中性</span>
-      <span style="font-size:11px;color:var(--text-secondary);">影响: 全球央行/FOMC/ECB/BOJ/利率/加息/通胀</span>
-      <h3>📅 全球央行超级周：美联储+欧央行+日央行本周议息 | 预计均按兵不动</h3>
-      <p><strong>10/27-28 FOMC议息</strong>（预计按兵不动，90%概率）。10/29 02:00公布决议+沃什新闻发布会。同日公布Q3 GDP+9月PCE。10/29 21:15 ECB议息（预计维持2.50%）。10/30 BOJ议息（预计维持1.25%）。Meta寻求最多$950亿股权融资支持AI支出。马斯克称SpaceX完成$400亿债务融资。11/3中期选举。巴西卢拉胜选引发市场巨震。</p>
-      <div class="source">来源：第一财经 / 华尔街见闻 / Reuters / 新华财经 · 2026-10-26</div>
-    </div>
-
-<div class="summary-box">
-    <h3>📊 综合判断</h3>
-    <p><strong>核心主线</strong>：<strong>"AI IPO+超级央行周"——Anthropic提交史上最大AI IPO提振科技情绪，美股三大指数齐涨，但A股科技硬件遭遇获利回吐；黄金在跌破$4000后收复关口，多空围绕$4000拉锯；FOMC本周大概率按兵不动但12月加息预期强烈（67.5%），收益率曲线趋平。</strong><strong>关键分化</strong>：①美股(+0.7%) vs A股(+0.19%)——美股受Anthropic IPO提振科技股全线反弹，A股石油银行护盘但科技硬件回调；②黄金(+0.5%) vs 比特币(-1.4%)——黄金重回$4000上方，比特币跌破$80,000；③长端美债(-1bp) vs 短端美债(+3bp)——曲线趋平反映加息预期与经济放缓担忧并存。<strong>前瞻</strong>：①FOMC决议+GDP/PCE为本周最大变量，沃什沟通策略是关键；②Anthropic IPO若成功将重塑AI板块估值锚；③全球央行超级周（美/欧/日/加）密集决议或同步按兵不动；④中期选举（11/3）前市场波动率料维持高位；⑤石油地缘溢价仍高（布油$115.81），胡塞-沙特互袭持续。</p>
-  </div></div>
-
-</div></div>
-
-<!-- Add Modal -->
-<div class="modal-overlay" id="add-modal">
-  <div class="modal-box">
-    <h3>添加标的</h3>
-
-    <div class="preset-section">
-      <label>快捷选择</label>
-      <div class="preset-chips" id="preset-chips">
-        <span class="preset-chip" data-symbol="^DJI" data-name="道琼斯工业" data-type="index">道琼斯</span>
-        <span class="preset-chip" data-symbol="^SOX" data-name="费城半导体" data-type="index">费城半导体</span>
-        <span class="preset-chip" data-symbol="^RUT" data-name="罗素2000" data-type="index">罗素2000</span>
-        <span class="preset-chip" data-symbol="000300.SS" data-name="沪深300" data-type="index">沪深300</span>
-        <span class="preset-chip" data-symbol="399006.SZ" data-name="创业板指" data-type="index">创业板指</span>
-        <span class="preset-chip" data-symbol="^N225" data-name="日经225" data-type="index">日经225</span>
-        <span class="preset-chip" data-symbol="^FTSE" data-name="富时100" data-type="index">富时100</span>
-        <span class="preset-chip" data-symbol="^GDAXI" data-name="德国DAX" data-type="index">DAX</span>
-        <span class="preset-chip" data-symbol="CL=F" data-name="WTI原油" data-type="commodity">WTI原油</span>
-        <span class="preset-chip" data-symbol="GC=F" data-name="COMEX黄金" data-type="commodity">COMEX黄金</span>
-      </div>
-    </div>
-
-    <label>名称</label>
-    <input type="text" id="add-name" placeholder="如：日经225、沪深300、AAPL">
-    <label>Yahoo代码 <span style="font-weight:400;text-transform:none;letter-spacing:0;">(必填，用于自动获取数据)</span></label>
-    <input type="text" id="add-symbol" placeholder="如：^N225、000300.SS、AAPL、CL=F">
-    <div class="modal-hint">
-      美股指数: ^GSPC ^IXIC ^DJI ^SOX ^RUT &nbsp;|&nbsp; A股: 000300.SS 399006.SZ &nbsp;|&nbsp; 港股: ^HSI &nbsp;|&nbsp; 商品: GC=F(金) CL=F(油) SI=F(银) &nbsp;|&nbsp; 个股: AAPL NVDA 0700.HK
-    </div>
-    <label>类别</label>
-    <select id="add-type">
-      <option value="index">指数</option>
-      <option value="stock">股票</option>
-      <option value="commodity">商品</option>
-      <option value="crypto">加密货币</option>
-      <option value="bond">债券/收益率</option>
-    </select>
-    <div class="modal-status" id="add-status"></div>
-    <div class="modal-btns">
-      <button class="btn-cancel" onclick="closeAddModal()">取消</button>
-      <button class="btn-confirm" id="add-confirm-btn" onclick="confirmAdd()">添加并获取数据</button>
-    </div>
-  </div>
-</div>
-
-<!-- Toast -->
-<div class="toast" id="toast"></div>
-
-<script>
-// ========== Data Layer ==========
-const DEFAULT_MAIN = [
-  { id:'sp500', name:'S&P 500', dot:'dot-us', price:'7,676.77', d:['+0.70%','up'], d5:['+0.2%','up'], d20:['-0.5%','down'], ytd:['+12.1%','up'], y1:['+15.6%','up'], y3:['+81.0%','up'], y5:['+73.0%','up'], y10:['+225.0%','up'] },
-  { id:'nasdaq', name:'NASDAQ', dot:'dot-us', price:'26,169.38', d:['+0.82%','up'], d5:['-0.8%','down'], d20:['-1.7%','down'], ytd:['+12.6%','up'], y1:['+17.5%','up'], y3:['+43.0%','up'], y5:['+101.0%','up'], y10:['+266.0%','up'] },
-  { id:'shcomp', name:'上证指数', dot:'dot-cn', price:'3,697.52', d:['+0.19%','up'], d5:['+0.0%','flat'], d20:['-3.1%','down'], ytd:['+6.84%','up'], y1:['+6.3%','up'], y3:['+11.6%','up'], y5:['+21.5%','up'], y10:['+31.8%','up'] },
-  { id:'hsi', name:'恒生指数', dot:'dot-hk', price:'23,211.81', d:['+0.51%','up'], d5:['-0.9%','down'], d20:['-3.4%','down'], ytd:['-7.7%','down'], y1:['-10.7%','down'], y3:['-32.5%','down'], y5:['-35.2%','down'], y10:['-37.5%','down'] },
-  { id:'gold', name:'黄金 Spot', dot:'dot-gold', price:'$4,016', d:['+0.51%','up'], d5:['-3.2%','down'], d20:['-5.5%','down'], ytd:['-13.6%','down'], y1:['+1.1%','up'], y3:['+100.8%','up'], y5:['+125.8%','up'], y10:['+220.8%','up'] },
-  { id:'btc', name:'比特币', dot:'dot-crypto', price:'$80,237', d:['-1.37%','down'], d5:['-2.1%','down'], d20:['-5.3%','down'], ytd:['-14.8%','down'], y1:['-27.0%','down'], y3:['-38.0%','down'], y5:['+51.0%','up'], y10:['+15,100%','up'] },
-];
-
-const DEFAULT_BOND = [
-  { id:'us10y', name:'10年期美债', dot:'dot-bond', price:'4.982%', d:['-1bp','down'], d5:['-13bp','down'], d20:['-4bp','down'], ytd:['+83bp','up'], y1:['+114bp','up'], y3:['+124bp','up'], y5:['+154bp','up'], y10:['+142bp','up'] },
-  { id:'us2y', name:'2年期美债', dot:'dot-bond', price:'4.705%', d:['+3bp','up'], d5:['+0bp','flat'], d20:['+8bp','up'], ytd:['+120bp','up'], y1:['+136bp','up'], y3:['-11bp','down'], y5:['+78bp','up'], y10:['-7bp','down'] },
-];
-
-const TYPE_DOT = { index:'dot-us', stock:'dot-custom', commodity:'dot-gold', crypto:'dot-crypto', bond:'dot-bond' };
-
-function getMainData() {
-  const saved = localStorage.getItem('mt_main');
-  if (saved) return JSON.parse(saved);
-  return [...DEFAULT_MAIN];
-}
-function setMainData(data) {
-  localStorage.setItem('mt_main', JSON.stringify(data));
-}
-function getBondData() {
-  const saved = localStorage.getItem('mt_bond');
-  if (saved) return JSON.parse(saved);
-  return [...DEFAULT_BOND];
-}
-function setBondData(data) {
-  localStorage.setItem('mt_bond', JSON.stringify(data));
-}
-
-// ========== Yahoo Finance Fetch ==========
-async function fetchYahooData(symbol) {
-  const proxyUrls = [
-    `https://corsproxy.io/?${encodeURIComponent(`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?range=10y&interval=1d&includePrePost=false`)}`,
-    `https://api.allorigins.win/raw?url=${encodeURIComponent(`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?range=10y&interval=1d&includePrePost=false`)}`,
-  ];
-
-  for (const url of proxyUrls) {
-    try {
-      const resp = await fetch(url, { signal: AbortSignal.timeout(12000) });
-      if (!resp.ok) continue;
-      const data = await resp.json();
-      if (data.chart && data.chart.result && data.chart.result.length > 0) {
-        return parseYahooResult(data.chart.result[0]);
-      }
-    } catch(e) {
-      continue;
-    }
-  }
-  return null;
-}
-
-function parseYahooResult(result) {
-  const quotes = result.indicators.quote[0];
-  const timestamps = result.timestamp;
-  if (!quotes || !timestamps || timestamps.length === 0) return null;
-
-  const closes = [], dates = [];
-  for (let i = 0; i < timestamps.length; i++) {
-    if (quotes.close[i] != null) {
-      closes.push(quotes.close[i]);
-      dates.push(new Date(timestamps[i] * 1000));
-    }
-  }
-  if (closes.length < 2) return null;
-
-  const latest = closes[closes.length - 1];
-  const prev = closes[closes.length - 2];
-  const dayChange = ((latest - prev) / prev * 100);
-
-  function getReturn(daysBack) {
-    const target = closes.length - 1 - daysBack;
-    if (target < 0) return null;
-    return ((latest - closes[target]) / closes[target] * 100);
-  }
-
-  const tradingDaysInYear = 252;
-  function getReturnTradingDays(days) {
-    const target = closes.length - 1 - days;
-    if (target < 0) return ((latest - closes[0]) / closes[0] * 100);
-    return ((latest - closes[target]) / closes[target] * 100);
-  }
-
-  const latestDate = dates[dates.length - 1];
-  const currentYear = latestDate.getFullYear();
-  let ytdStart = 0;
-  for (let i = 0; i < dates.length; i++) {
-    if (dates[i].getFullYear() === currentYear) { ytdStart = i; break; }
-  }
-  const ytdReturn = ((latest - closes[ytdStart]) / closes[ytdStart] * 100);
-
-  return {
-    price: latest,
-    dayChange: dayChange,
-    d5: getReturnTradingDays(5),
-    d20: getReturnTradingDays(20),
-    ytd: ytdReturn,
-    y1: closes.length > tradingDaysInYear ? getReturnTradingDays(tradingDaysInYear) : null,
-    y3: closes.length > tradingDaysInYear * 3 ? getReturnTradingDays(tradingDaysInYear * 3) : null,
-    y5: closes.length > tradingDaysInYear * 5 ? getReturnTradingDays(tradingDaysInYear * 5) : null,
-    y10: closes.length > tradingDaysInYear * 10 ? getReturnTradingDays(tradingDaysInYear * 10) : null,
-  };
-}
-
-// ========== Render ==========
-function formatChange(val, isBond) {
-  if (val == null) return ['--', 'flat'];
-  if (isBond) {
-    const bp = Math.round(val * 100);
-    const dir = bp > 0 ? 'up' : bp < 0 ? 'down' : 'flat';
-    return [(bp > 0 ? '+' : '') + bp + 'bp', dir];
-  }
-  const pct = val.toFixed(1);
-  const dir = val > 0.05 ? 'up' : val < -0.05 ? 'down' : 'flat';
-  return [(val > 0 ? '+' : '') + pct + '%', dir];
-}
-
-function formatPrice(price, isBond) {
-  if (isBond) return price.toFixed(2) + '%';
-  if (price >= 10000) return price.toLocaleString('en-US', { maximumFractionDigits: 0 });
-  if (price >= 100) return price.toLocaleString('en-US', { maximumFractionDigits: 2 });
-  return price.toLocaleString('en-US', { maximumFractionDigits: 2 });
-}
-
-function renderTables() {
-  const mainData = getMainData();
-  const bondData = getBondData();
-
-  // Main table
-  const mainTbody = document.getElementById('main-tbody');
-  mainTbody.innerHTML = mainData.map(item => {
-    const changeHtml = (arr) => `<span class="change ${arr[1]}">${arr[0]}</span>`;
-    return `<tr>
-      <td><div class="row-actions">
-        <button class="btn-up" onclick="moveRow('main',-1,'${item.id}')" title="上移">↑</button>
-        <button class="btn-down" onclick="moveRow('main',1,'${item.id}')" title="下移">↓</button>
-        <button class="btn-del" onclick="removeRow('main','${item.id}')" title="删除">✕</button>
-      </div></td>
-      <td><span class="asset-dot ${item.dot}"></span>${item.name}</td>
-      <td class="price">${item.price}</td>
-      <td>${changeHtml(item.d)}</td>
-      <td>${changeHtml(item.d5)}</td>
-      <td>${changeHtml(item.d20)}</td>
-      <td>${changeHtml(item.ytd)}</td>
-      <td>${changeHtml(item.y1)}</td>
-      <td>${changeHtml(item.y3)}</td>
-      <td>${changeHtml(item.y5)}</td>
-      <td>${changeHtml(item.y10)}</td>
-    </tr>`;
-  }).join('');
-
-  // Bond table
-  const bondTbody = document.getElementById('bond-tbody');
-  bondTbody.innerHTML = bondData.map(item => {
-    const changeHtml = (arr) => `<span class="change ${arr[1]}">${arr[0]}</span>`;
-    return `<tr>
-      <td><div class="row-actions">
-        <button class="btn-up" onclick="moveRow('bond',-1,'${item.id}')" title="上移">↑</button>
-        <button class="btn-down" onclick="moveRow('bond',1,'${item.id}')" title="下移">↓</button>
-        <button class="btn-del" onclick="removeRow('bond','${item.id}')" title="删除">✕</button>
-      </div></td>
-      <td><span class="asset-dot ${item.dot}"></span>${item.name}</td>
-      <td class="price">${item.price}</td>
-      <td>${changeHtml(item.d)}</td>
-      <td>${changeHtml(item.d5)}</td>
-      <td>${changeHtml(item.d20)}</td>
-      <td>${changeHtml(item.ytd)}</td>
-      <td>${changeHtml(item.y1)}</td>
-      <td>${changeHtml(item.y3)}</td>
-      <td>${changeHtml(item.y5)}</td>
-      <td>${changeHtml(item.y10)}</td>
-    </tr>`;
-  }).join('');
-}
-
-// ========== Row Actions ==========
-function moveRow(type, direction, id) {
-  const getData = type === 'main' ? getMainData : getBondData;
-  const setData = type === 'main' ? setMainData : setBondData;
-  const data = getData();
-  const idx = data.findIndex(d => d.id === id);
-  if (idx < 0) return;
-  const newIdx = idx + direction;
-  if (newIdx < 0 || newIdx >= data.length) return;
-  [data[idx], data[newIdx]] = [data[newIdx], data[idx]];
-  setData(data);
-  renderTables();
-}
-
-function removeRow(type, id) {
-  const getData = type === 'main' ? getMainData : getBondData;
-  const setData = type === 'main' ? setMainData : setBondData;
-  const data = getData().filter(d => d.id !== id);
-  setData(data);
-  renderTables();
-}
-
-// ========== Add Modal ==========
-function openAddModal() {
-  document.getElementById('add-modal').classList.add('show');
-  document.getElementById('add-name').value = '';
-  document.getElementById('add-symbol').value = '';
-  document.getElementById('add-status').className = 'modal-status';
-  document.getElementById('add-status').textContent = '';
-}
-function closeAddModal() {
-  document.getElementById('add-modal').classList.remove('show');
-}
-
-// Preset chips
-document.addEventListener('click', (e) => {
-  if (e.target.classList.contains('preset-chip')) {
-    document.querySelectorAll('.preset-chip').forEach(c => c.classList.remove('selected'));
-    e.target.classList.add('selected');
-    document.getElementById('add-name').value = e.target.dataset.name;
-    document.getElementById('add-symbol').value = e.target.dataset.symbol;
-    document.getElementById('add-type').value = e.target.dataset.type;
-  }
-});
-
-async function confirmAdd() {
-  const name = document.getElementById('add-name').value.trim();
-  const symbol = document.getElementById('add-symbol').value.trim();
-  const type = document.getElementById('add-type').value;
-  const statusEl = document.getElementById('add-status');
-  const btn = document.getElementById('add-confirm-btn');
-
-  if (!name || !symbol) {
-    statusEl.className = 'modal-status error';
-    statusEl.textContent = '请填写名称和代码';
-    return;
-  }
-
-  btn.disabled = true;
-  statusEl.className = 'modal-status fetching';
-  statusEl.textContent = '正在获取数据...';
-
-  const yahooData = await fetchYahooData(symbol);
-
-  if (!yahooData) {
-    statusEl.className = 'modal-status error';
-    statusEl.textContent = '无法获取数据，请检查代码是否正确';
-    btn.disabled = false;
-    return;
-  }
-
-  const dot = TYPE_DOT[type] || 'dot-custom';
-  const isBond = type === 'bond';
-  const item = {
-    id: 'custom_' + Date.now(),
-    name: name,
-    dot: dot,
-    price: formatPrice(yahooData.price, isBond),
-    d: formatChange(yahooData.dayChange, isBond),
-    d5: formatChange(yahooData.d5, isBond),
-    d20: formatChange(yahooData.d20, isBond),
-    ytd: formatChange(yahooData.ytd, isBond),
-    y1: formatChange(yahooData.y1, isBond),
-    y3: formatChange(yahooData.y3, isBond),
-    y5: formatChange(yahooData.y5, isBond),
-    y10: formatChange(yahooData.y10, isBond),
-  };
-
-  if (isBond) {
-    const data = getBondData();
-    data.push(item);
-    setBondData(data);
-  } else {
-    const data = getMainData();
-    data.push(item);
-    setMainData(data);
-  }
-
-  renderTables();
-  statusEl.className = 'modal-status success';
-  statusEl.textContent = '添加成功!';
-  setTimeout(() => { closeAddModal(); btn.disabled = false; }, 800);
-}
-
-// ========== Toast ==========
-function showToast(msg) {
-  const toast = document.getElementById('toast');
-  toast.textContent = msg;
-  toast.classList.add('show');
-  setTimeout(() => toast.classList.remove('show'), 3000);
-}
-
-// ========== Init ==========
-renderTables();
-</script>
-</div>
+    <script>
+        // Data arrays for programmatic access
+        const DEFAULT_MAIN = [
+            { name: "S&P 500", flag: "🇺🇸", price: 7722.60, change: 45.83, pctChange: 0.60, date: "2026-10-27" },
+            { name: "NASDAQ", flag: "🇺🇸", price: 26477.81, change: 308.43, pctChange: 1.18, date: "2026-10-27" },
+            { name: "上证指数", flag: "🇨🇳", price: 3648.30, change: -49.28, pctChange: -1.33, date: "2026-10-27" },
+            { name: "恒生指数", flag: "🇭🇰", price: 23041.32, change: -170.49, pctChange: -0.73, date: "2026-10-27" },
+            { name: "Gold Spot", flag: "🥇", price: 4060.14, change: 43.13, pctChange: 1.07, date: "2026-10-27" },
+            { name: "Bitcoin", flag: "₿", price: 80504, change: 962, pctChange: 1.2, date: "2026-10-27" }
+        ];
+        const DEFAULT_BOND = [
+            { name: "10Y Treasury", flag: "🇺🇸", yield: 4.997, changeBp: 1.45, date: "2026-10-27" },
+            { name: "2Y Treasury", flag: "🇺🇸", yield: 4.733, changeBp: 2.76, date: "2026-10-27" }
+        ];
+    </script>
 </body>
 </html>
